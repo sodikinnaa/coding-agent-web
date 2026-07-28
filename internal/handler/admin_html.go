@@ -257,8 +257,18 @@ func HandleAdminHTML(w http.ResponseWriter, r *http.Request, activeTab string) {
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">API Key Authorization</label>
-                            <input type="text" id="cfg-api-key" value="{{.Config.APIKey}}" required class="w-full bg-zinc-950 border border-zinc-800 text-zinc-100 rounded-xl px-4 py-2.5 text-xs font-mono focus:border-blue-500 focus:outline-none">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider">API Key Authorization</label>
+                                <span class="px-2 py-0.5 text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full font-medium flex items-center gap-1">
+                                    <i class="fa-solid fa-shield-halved text-[10px]"></i> AES-256-GCM Encrypted
+                                </span>
+                            </div>
+                            <div class="relative flex items-center">
+                                <input type="password" id="cfg-api-key" value="{{.Config.APIKey}}" required class="w-full bg-zinc-950 border border-zinc-800 text-zinc-100 rounded-xl pl-4 pr-10 py-2.5 text-xs font-mono focus:border-blue-500 focus:outline-none">
+                                <button type="button" onclick="togglePasswordVisibility('cfg-api-key', 'eye-icon-api-key')" class="absolute right-3 text-zinc-400 hover:text-white transition p-1" title="Lihat/Sembunyikan API Key">
+                                    <i id="eye-icon-api-key" class="fa-solid fa-eye-slash text-xs"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <div>
@@ -277,8 +287,18 @@ func HandleAdminHTML(w http.ResponseWriter, r *http.Request, activeTab string) {
                                 <span>Mayar.id Dynamic QRIS Payment Integration</span>
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Mayar.id API Key Authorization</label>
-                                <input type="text" id="cfg-mayar-key" value="{{.Config.MayarAPIKey}}" placeholder="mayar_sec_key_..." class="w-full bg-zinc-950 border border-zinc-800 text-zinc-100 rounded-xl px-4 py-2.5 text-xs font-mono focus:border-emerald-500 focus:outline-none">
+                                <div class="flex items-center justify-between mb-2">
+                                    <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider">Mayar.id API Key Authorization</label>
+                                    <span class="px-2 py-0.5 text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full font-medium flex items-center gap-1">
+                                        <i class="fa-solid fa-shield-halved text-[10px]"></i> AES-256-GCM Encrypted
+                                    </span>
+                                </div>
+                                <div class="relative flex items-center">
+                                    <input type="password" id="cfg-mayar-key" value="{{.Config.MayarAPIKey}}" placeholder="mayar_sec_key_..." class="w-full bg-zinc-950 border border-zinc-800 text-zinc-100 rounded-xl pl-4 pr-10 py-2.5 text-xs font-mono focus:border-emerald-500 focus:outline-none">
+                                    <button type="button" onclick="togglePasswordVisibility('cfg-mayar-key', 'eye-icon-mayar-key')" class="absolute right-3 text-zinc-400 hover:text-white transition p-1" title="Lihat/Sembunyikan Mayar Key">
+                                        <i id="eye-icon-mayar-key" class="fa-solid fa-eye-slash text-xs"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="bg-zinc-950 border border-zinc-800 p-3.5 rounded-xl space-y-2 text-xs">
                                 <label class="block text-[11px] font-semibold text-zinc-400">Webhook Notification URL (Setup Wizard):</label>

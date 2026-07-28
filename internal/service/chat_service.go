@@ -739,6 +739,75 @@ func GetQuizCategoryByID(id int64) (*model.QuizCategoryItem, error) {
 	return &item, nil
 }
 
+type OpenAIModelItem struct {
+	ID      string `json:"id"`
+	Object  string `json:"object"`
+	OwnedBy string `json:"owned_by"`
+}
+
+type OpenAIModelsResponse struct {
+	Data []OpenAIModelItem `json:"data"`
+}
+
+func FetchVisionModelsFromProvider() ([]string, error) {
+	currCfg := config.GetConfig()
+	url := strings.TrimSuffix(currCfg.BaseURL, "/") + "/models"
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	if currCfg.APIKey != "" {
+		req.Header.Set("Authorization", "Bearer "+currCfg.APIKey)
+	}
+
+	client := &http.Client{Timeout: 8 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch models from provider: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		respBytes, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("provider status %d: %s", resp.StatusCode, string(respBytes))
+	}
+
+	var modelsResp OpenAIModelsResponse
+	if err := json.NewDecoder(resp.Body).Decode(&modelsResp); err != nil {
+		return nil, fmt.Errorf("failed to decode models response: %w", err)
+	}
+
+	visionKeywords := []string{
+		"vision", "flash", "pro", "multimodal", "4o", "gemini", "claude-3",
+		"llava", "pixtral", "gpt-4", "omni", "qwen-vl", "internvl",
+	}
+
+	var visionModels []string
+	for _, m := range modelsResp.Data {
+		idLower := strings.ToLower(m.ID)
+		isVision := false
+		for _, kw := range visionKeywords {
+			if strings.Contains(idLower, kw) {
+				isVision = true
+				break
+			}
+		}
+		if isVision {
+			visionModels = append(visionModels, m.ID)
+		}
+	}
+
+	if len(visionModels) == 0 && len(modelsResp.Data) > 0 {
+		for _, m := range modelsResp.Data {
+			visionModels = append(visionModels, m.ID)
+		}
+	}
+
+	return visionModels, nil
+}
+
 
 
 

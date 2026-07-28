@@ -53,6 +53,7 @@ func main() {
 
 	// Admin REST API Endpoints
 	http.HandleFunc("/api/admin/config", handler.HandleAdminConfig)
+	http.HandleFunc("/api/admin/models", handler.HandleAdminFetchModels)
 	http.HandleFunc("/api/admin/users", handler.HandleAdminUsers)
 	http.HandleFunc("/api/admin/user/delete", handler.HandleAdminUserDelete)
 	http.HandleFunc("/api/admin/user/reset-password", handler.HandleAdminUserResetPassword)

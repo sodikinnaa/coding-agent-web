@@ -2780,6 +2780,27 @@ func HandleAdminConfig(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{"success": true})
 }
 
+func HandleAdminFetchModels(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if !verifyAdminAuth(r) {
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]interface{}{"error": "Unauthorized admin"})
+		return
+	}
+
+	models, err := service.FetchVisionModelsFromProvider()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"error": err.Error()})
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"models":  models,
+	})
+}
+
 // Admin API Handlers
 
 func verifyAdminAuth(r *http.Request) bool {

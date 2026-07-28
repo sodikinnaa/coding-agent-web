@@ -272,8 +272,26 @@ func HandleAdminHTML(w http.ResponseWriter, r *http.Request, activeTab string) {
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Model AI Name</label>
-                            <input type="text" id="cfg-model" value="{{.Config.Model}}" required class="w-full bg-zinc-950 border border-zinc-800 text-zinc-100 rounded-xl px-4 py-2.5 text-xs font-mono focus:border-blue-500 focus:outline-none">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider">Model AI Name</label>
+                                <button type="button" onclick="fetchVisionModels()" id="btn-fetch-models" class="px-2.5 py-1 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 rounded-lg text-[11px] font-medium transition flex items-center gap-1.5 active:scale-95" title="Fetch & filter vision models from Provider API">
+                                    <i class="fa-solid fa-arrows-rotate text-[10px]" id="fetch-model-icon"></i>
+                                    <span>Fetch Vision Models</span>
+                                </button>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex items-center space-x-2">
+                                    <input type="text" id="cfg-model" value="{{.Config.Model}}" required placeholder="Tulis atau pilih model AI..." class="w-full bg-zinc-950 border border-zinc-800 text-zinc-100 rounded-xl px-4 py-2.5 text-xs font-mono focus:border-blue-500 focus:outline-none">
+                                    <select id="cfg-model-select" onchange="if(this.value) document.getElementById('cfg-model').value = this.value" class="bg-zinc-950 border border-zinc-800 text-zinc-300 rounded-xl px-3 py-2.5 text-xs font-mono focus:border-blue-500 focus:outline-none max-w-[200px]">
+                                        <option value="">-- Pilih Model Provider --</option>
+                                        <option value="{{.Config.Model}}" selected>{{.Config.Model}}</option>
+                                    </select>
+                                </div>
+                                <p class="text-[10px] text-zinc-500 flex items-center gap-1">
+                                    <i class="fa-solid fa-circle-info text-blue-400"></i>
+                                    <span>Tekan <strong>Fetch Vision Models</strong> untuk mengambil daftar model multimodal/vision aktif dari Provider API secara otomatis.</span>
+                                </p>
+                            </div>
                         </div>
 
                         <div>
@@ -1080,6 +1098,41 @@ func HandleAdminHTML(w http.ResponseWriter, r *http.Request, activeTab string) {
                 alert('Gagal menyimpan konfigurasi.');
             }
         });
+
+        async function fetchVisionModels() {
+            const btn = document.getElementById('btn-fetch-models');
+            const icon = document.getElementById('fetch-model-icon');
+            const select = document.getElementById('cfg-model-select');
+            const input = document.getElementById('cfg-model');
+
+            if (btn) btn.disabled = true;
+            if (icon) icon.classList.add('animate-spin');
+
+            try {
+                const res = await fetch('/api/admin/models');
+                const data = await res.json();
+
+                if (res.ok && data.models && data.models.length > 0) {
+                    select.innerHTML = '<option value="">-- Pilih Model Vision (' + data.models.length + ') --</option>';
+                    data.models.forEach(m => {
+                        const opt = document.createElement('option');
+                        opt.value = m;
+                        opt.innerText = m;
+                        if (m === input.value) opt.selected = true;
+                        select.appendChild(opt);
+                    });
+                    alert('Berhasil mengambil ' + data.models.length + ' model AI berdukungan Vision/Multimodal dari Provider API!');
+                } else {
+                    alert('Gagal fetch model: ' + (data.error || 'Provider tidak mengembalikan daftar model.'));
+                }
+            } catch(e) {
+                alert('Gagal terhubung ke server provider API.');
+            } finally {
+                if (btn) btn.disabled = false;
+                if (icon) icon.classList.remove('animate-spin');
+            }
+        }
+        window.fetchVisionModels = fetchVisionModels;
 
         // Initialize active tab from server parameter
         switchTab('{{.ActiveTab}}');

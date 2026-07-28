@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"coding_agent_web/internal/auth"
 	"coding_agent_web/internal/config"
 	"coding_agent_web/internal/db"
 	"coding_agent_web/internal/handler"
@@ -15,6 +16,7 @@ import (
 func main() {
 	config.LoadConfig()
 	db.InitDB("data.db")
+	auth.EnsureAdminUserExists()
 	knowledge.LoadKnowledgeBase()
 
 	// Public & Doc Routes

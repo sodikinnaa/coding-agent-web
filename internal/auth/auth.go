@@ -5,10 +5,12 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"sync"
 	"time"
 
+	"coding_agent_web/internal/config"
 	"coding_agent_web/internal/db"
 	"coding_agent_web/internal/model"
 
@@ -19,6 +21,39 @@ var (
 	sessions     = make(map[string]int64) // token -> user_id
 	sessionMutex sync.RWMutex
 )
+
+func EnsureAdminUserExists() {
+	cfg := config.GetConfig()
+	adminPass := cfg.AdminPassword
+	if adminPass == "" {
+		adminPass = "L4njutk4n"
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(adminPass), bcrypt.DefaultCost)
+	if err != nil {
+		log.Printf("Warning: Failed to bcrypt admin password: %v", err)
+		return
+	}
+
+	today := time.Now().Format("2006-01-02")
+	var count int
+	_ = db.DB.QueryRow("SELECT COUNT(*) FROM users WHERE username = 'admin'").Scan(&count)
+
+	if count == 0 {
+		_, err = db.DB.Exec(`
+			INSERT INTO users (username, password_hash, full_name, role, daily_limit, used_today, last_active_date)
+			VALUES ('admin', ?, 'System Administrator', 'admin', 999999, 0, ?)
+		`, string(hash), today)
+		if err != nil {
+			log.Printf("Warning: Failed to seed admin user: %v", err)
+		} else {
+			log.Println("✅ Initialized default admin account 'admin' into SQLite database.")
+		}
+	} else {
+		_, _ = db.DB.Exec("UPDATE users SET password_hash = ? WHERE username = 'admin'", string(hash))
+		log.Println("✅ Synced admin account 'admin' password hash in SQLite database.")
+	}
+}
 
 func RegisterUser(username, password, fullName string) (*model.User, error) {
 	if username == "" || password == "" {

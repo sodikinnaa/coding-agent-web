@@ -348,11 +348,11 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
         <!-- Sidebar Docs & History (Desktop & Mobile Drawer) -->
         <div id="mobile-sidebar-backdrop" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-30 hidden lg:hidden transition-opacity"></div>
 
-        <aside id="sidebar-docs" class="w-72 md:w-80 bg-zinc-950 border-r border-zinc-800 p-4 fixed lg:static inset-y-0 left-0 z-40 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col h-full">
+        <aside id="sidebar-docs" class="w-72 md:w-80 bg-zinc-950 border-r border-zinc-800 p-4 fixed lg:static inset-y-0 left-0 z-40 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col h-full shrink-0">
             
             <!-- Sidebar Navigation Tabs: History vs Knowledge Base -->
             <div class="flex items-center bg-zinc-900 border border-zinc-800 p-1 rounded-xl mb-4 shrink-0">
-                <button id="tab-btn-history" onclick="switchSidebarTab('history')" class="flex-1 py-1.5 rounded-lg text-xs font-medium bg-blue-600 text-white transition flex items-center justify-center gap-1.5">
+                <button id="tab-btn-history" onclick="switchSidebarTab('history')" class="flex-1 py-1.5 rounded-lg text-xs font-medium bg-blue-600 text-white transition flex items-center justify-center gap-1.5 shadow-sm">
                     <i class="fa-solid fa-clock-rotate-left text-[11px]"></i>
                     <span>Riwayat Chat</span>
                 </button>
@@ -365,7 +365,7 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
             <!-- Tab 1: User Chat History (Default Active) -->
             <div id="tab-content-history" class="flex-1 flex flex-col min-h-0">
                 <div class="mb-3 px-1 shrink-0 space-y-2">
-                    <button onclick="startNewChatSession()" class="w-full py-2.5 px-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-100 font-semibold text-xs rounded-xl transition flex items-center justify-between group shadow-sm active:scale-98">
+                    <button onclick="startNewChatSession()" class="w-full py-2.5 px-3 bg-zinc-900 hover:bg-zinc-850 border border-zinc-800/90 text-zinc-100 font-semibold text-xs rounded-xl transition flex items-center justify-between group shadow-sm active:scale-98">
                         <div class="flex items-center gap-2">
                             <div class="w-5 h-5 rounded-lg bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center text-[10px]">
                                 <i class="fa-solid fa-plus"></i>
@@ -421,38 +421,6 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
                         </div>
                     </div>
                     {{end}}
-                </div>
-            </div>
-                <div class="mb-3 px-1 shrink-0 space-y-2">
-                    <button onclick="startNewChatSession()" class="w-full py-2.5 px-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-100 font-semibold text-xs rounded-xl transition flex items-center justify-between group shadow-sm active:scale-98">
-                        <div class="flex items-center gap-2">
-                            <div class="w-5 h-5 rounded-lg bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center text-[10px]">
-                                <i class="fa-solid fa-plus"></i>
-                            </div>
-                            <span>Percakapan Baru</span>
-                        </div>
-                        <i class="fa-regular fa-pen-to-square text-zinc-500 group-hover:text-zinc-300 text-xs"></i>
-                    </button>
-                    <div class="flex items-center justify-between pt-1">
-                        <h2 class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Riwayat Obrolan</h2>
-                        <span id="session-count-badge" class="text-[10px] bg-zinc-900 text-zinc-400 px-2 py-0.5 rounded-full font-mono border border-zinc-800">0 Chat</span>
-                    </div>
-                </div>
-                
-                <!-- History Login Guard Notice -->
-                <div id="history-login-notice" class="hidden p-4 bg-zinc-900/80 border border-zinc-800 rounded-2xl text-center space-y-2.5 my-auto shadow-xl">
-                    <div class="w-10 h-10 rounded-xl bg-blue-600/10 border border-blue-500/20 text-blue-400 flex items-center justify-center text-lg mx-auto">
-                        <i class="fa-solid fa-user-lock"></i>
-                    </div>
-                    <p class="text-xs text-zinc-200 font-bold">Simpan Riwayat Percakapan</p>
-                    <p class="text-[11px] text-zinc-400 leading-relaxed">Masuk akun untuk menyimpan dan mengakses semua percakapan AI Anda kapan saja.</p>
-                    <button onclick="openAuthModal('login')" class="w-full mt-1 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold py-2 rounded-xl transition shadow-md">
-                        Masuk / Daftar Akun
-                    </button>
-                </div>
-
-                <div id="history-sessions-list" class="flex-1 overflow-y-auto space-y-1.5 pr-1">
-                    <!-- Dynamic sessions list -->
                 </div>
             </div>
 

@@ -391,27 +391,59 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 
             <!-- Tab 2: User Chat History -->
             <div id="tab-content-history" class="flex-1 flex flex-col min-h-0 hidden">
-                <div class="flex items-center justify-between mb-3 px-1 shrink-0">
-                    <h2 class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Sesi Obrolan Kamu</h2>
-                    <button onclick="startNewChatSession()" class="text-[11px] bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white border border-blue-500/30 px-2 py-0.5 rounded-lg transition flex items-center gap-1">
-                        <i class="fa-solid fa-plus text-[9px]"></i>
-                        <span>Baru</span>
+                <div class="mb-3 px-1 shrink-0 space-y-2">
+                    <button onclick="startNewChatSession()" class="w-full py-2.5 px-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-100 font-semibold text-xs rounded-xl transition flex items-center justify-between group shadow-sm active:scale-98">
+                        <div class="flex items-center gap-2">
+                            <div class="w-5 h-5 rounded-lg bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center text-[10px]">
+                                <i class="fa-solid fa-plus"></i>
+                            </div>
+                            <span>Percakapan Baru</span>
+                        </div>
+                        <i class="fa-regular fa-pen-to-square text-zinc-500 group-hover:text-zinc-300 text-xs"></i>
                     </button>
+                    <div class="flex items-center justify-between pt-1">
+                        <h2 class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Riwayat Obrolan</h2>
+                        <span id="session-count-badge" class="text-[10px] bg-zinc-900 text-zinc-400 px-2 py-0.5 rounded-full font-mono border border-zinc-800">0 Chat</span>
+                    </div>
                 </div>
                 
                 <!-- History Login Guard Notice -->
-                <div id="history-login-notice" class="hidden p-4 bg-zinc-900 border border-zinc-800 rounded-xl text-center space-y-2 my-auto">
-                    <i class="fa-solid fa-user-lock text-2xl text-blue-400"></i>
-                    <p class="text-xs text-zinc-300 font-medium">Masuk Akun untuk Simpan Riwayat</p>
-                    <p class="text-[11px] text-zinc-500 leading-relaxed">Login atau buat akun baru agar semua percakapan kamu tersimpan dan bisa diakses kapan saja.</p>
-                    <button onclick="openAuthModal('login')" class="w-full mt-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium py-2 rounded-lg transition">
-                        Masuk / Daftar
+                <div id="history-login-notice" class="hidden p-4 bg-zinc-900/80 border border-zinc-800 rounded-2xl text-center space-y-2.5 my-auto shadow-xl">
+                    <div class="w-10 h-10 rounded-xl bg-blue-600/10 border border-blue-500/20 text-blue-400 flex items-center justify-center text-lg mx-auto">
+                        <i class="fa-solid fa-user-lock"></i>
+                    </div>
+                    <p class="text-xs text-zinc-200 font-bold">Simpan Riwayat Percakapan</p>
+                    <p class="text-[11px] text-zinc-400 leading-relaxed">Masuk akun untuk menyimpan dan mengakses semua percakapan AI Anda kapan saja.</p>
+                    <button onclick="openAuthModal('login')" class="w-full mt-1 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold py-2 rounded-xl transition shadow-md">
+                        Masuk / Daftar Akun
                     </button>
                 </div>
 
-                <div id="history-sessions-list" class="flex-1 overflow-y-auto space-y-2 pr-1">
+                <div id="history-sessions-list" class="flex-1 overflow-y-auto space-y-1.5 pr-1">
                     <!-- Dynamic sessions list -->
                 </div>
+            </div>
+
+            <!-- ChatGPT-style Sidebar User Account Footer -->
+            <div id="sidebar-user-footer" class="mt-auto pt-3 border-t border-zinc-800/80 shrink-0 hidden space-y-2">
+                <div onclick="openProfileModal()" class="p-2.5 bg-zinc-900/90 hover:bg-zinc-800/90 border border-zinc-800 hover:border-zinc-700 rounded-2xl cursor-pointer transition shadow-lg flex items-center justify-between group">
+                    <div class="flex items-center space-x-2.5 min-w-0">
+                        <div id="sb-user-avatar" class="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-md">U</div>
+                        <div class="min-w-0">
+                            <div id="sb-user-name" class="text-xs font-semibold text-zinc-100 truncate leading-snug">User</div>
+                            <div class="flex items-center gap-1.5 mt-0.5">
+                                <span id="sb-user-plan-badge" class="px-1.5 py-0.2 text-[9px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-md">Free Plan</span>
+                                <span id="sb-user-usage-str" class="text-[10px] text-zinc-400 font-mono">0/5</span>
+                            </div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-gear text-zinc-400 group-hover:text-zinc-200 text-xs px-1"></i>
+                </div>
+                
+                <button onclick="openProfileModal(); switchProfTab('billing');" class="w-full py-2 px-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-blue-500/20 transition flex items-center justify-center gap-2 active:scale-98">
+                    <i class="fa-solid fa-sparkles text-amber-300 text-[11px]"></i>
+                    <span>Langganan & Billing</span>
+                </button>
             </div>
 
         </aside>
@@ -732,70 +764,103 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
         </div>
     </div>
 
-    <!-- Modal Profile User Monitoring -->
+    <!-- Modal Profile & ChatGPT-style Billing Dashboard -->
     <div id="profile-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-5">
-            <div class="flex items-center justify-between pb-3 border-b border-zinc-800">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-2xl p-6 shadow-2xl space-y-5">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between pb-4 border-b border-zinc-800">
                 <div class="flex items-center space-x-3">
-                    <div id="prof-modal-avatar" class="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-base font-bold shadow-lg shadow-blue-500/20">U</div>
+                    <div id="prof-modal-avatar" class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center text-base font-bold shadow-lg shadow-blue-500/20">U</div>
                     <div>
-                        <h3 id="prof-modal-name" class="text-sm font-bold text-white">Profil Pengguna</h3>
-                        <p id="prof-modal-username" class="text-[11px] text-zinc-400">@username</p>
+                        <div class="flex items-center gap-2">
+                            <h3 id="prof-modal-name" class="text-base font-bold text-white">Nama Pengguna</h3>
+                            <span id="prof-modal-role" class="px-2 py-0.5 text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full uppercase">Free Plan</span>
+                        </div>
+                        <p id="prof-modal-username" class="text-xs text-zinc-400">@username</p>
                     </div>
                 </div>
-                <button onclick="closeProfileModal()" class="text-zinc-400 hover:text-white p-1">
+                <button onclick="closeProfileModal()" class="text-zinc-400 hover:text-white p-1.5 rounded-xl bg-zinc-950 border border-zinc-800 transition">
                     <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
 
-            <!-- Monitoring Stats Grid -->
-            <div class="grid grid-cols-2 gap-3">
-                <div class="bg-zinc-950 border border-zinc-800/80 p-3.5 rounded-xl space-y-1">
-                    <div class="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Status Paket</div>
-                    <div id="prof-modal-role" class="text-xs font-bold text-blue-400">Free Tier</div>
-                </div>
-                <div class="bg-zinc-950 border border-zinc-800/80 p-3.5 rounded-xl space-y-1">
-                    <div class="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Batas Paket Harian</div>
-                    <div id="prof-modal-limit" class="text-xs font-bold text-zinc-200">5 Chat / Hari</div>
-                </div>
-                <div class="bg-zinc-950 border border-zinc-800/80 p-3.5 rounded-xl space-y-1">
-                    <div class="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Sisa Kredit Hari Ini</div>
-                    <div id="prof-modal-remaining" class="text-xs font-bold text-emerald-400">4 Chat</div>
-                </div>
-                <div class="bg-zinc-950 border border-zinc-800/80 p-3.5 rounded-xl space-y-1">
-                    <div class="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Terpakai Hari Ini</div>
-                    <div id="prof-modal-used" class="text-xs font-bold text-amber-400">1 Chat</div>
-                </div>
-            </div>
-
-            <!-- Additional Info -->
-            <div class="bg-blue-500/10 border border-blue-500/20 p-3.5 rounded-xl text-xs text-blue-300 space-y-1">
-                <div class="font-semibold flex items-center gap-1.5">
-                    <i class="fa-solid fa-circle-info text-blue-400"></i>
-                    <span>Informasi Auto-Reset</span>
-                </div>
-                <p class="text-[11px] text-blue-200/80 leading-relaxed">Kredit obrolan harian kamu ter-reset otomatis setiap pergantian hari jam 00:00 WIB.</p>
-            </div>
-
-            <!-- Transaction History Section -->
-            <div class="space-y-2 pt-1 border-t border-zinc-800">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-white flex items-center gap-1.5">
-                        <i class="fa-solid fa-receipt text-blue-400"></i>
-                        <span>Riwayat Transaksi Topup</span>
-                    </span>
-                    <button onclick="loadUserTransactions()" class="text-[10px] text-blue-400 hover:underline">Refresh</button>
-                </div>
-                <div id="prof-tx-history-box" class="max-h-36 overflow-y-auto space-y-1.5 text-xs font-mono">
-                    <p class="text-[11px] text-zinc-500 text-center py-2">Memuat riwayat transaksi...</p>
-                </div>
-            </div>
-
-            <div class="flex justify-end gap-2 pt-1">
-                <button onclick="openPackageModal(); closeProfileModal();" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20">
-                    <i class="fa-solid fa-qrcode"></i> Beli / Upgrade Paket QRIS
+            <!-- Dashboard Navigation Tabs: Billing vs History -->
+            <div class="flex items-center bg-zinc-950 border border-zinc-800 p-1 rounded-2xl">
+                <button id="prof-tab-btn-billing" onclick="switchProfTab('billing')" class="flex-1 py-2 text-xs font-semibold rounded-xl bg-blue-600 text-white transition flex items-center justify-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-sparkles text-amber-300 text-xs"></i>
+                    <span>Langganan & Kuota</span>
                 </button>
-                <button onclick="closeProfileModal()" class="px-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold py-2.5 rounded-xl transition">
+                <button id="prof-tab-btn-history" onclick="switchProfTab('history')" class="flex-1 py-2 text-xs font-medium text-zinc-400 hover:text-zinc-200 transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-receipt text-xs"></i>
+                    <span>Riwayat Transaksi</span>
+                </button>
+            </div>
+
+            <!-- Tab 1: Billing & Limits -->
+            <div id="prof-tab-content-billing" class="space-y-4">
+                <!-- Usage Meter Card -->
+                <div class="p-4 bg-zinc-950 border border-zinc-800/90 rounded-2xl space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Penggunaan Kredit Hari Ini</span>
+                            <div class="flex items-baseline gap-2 mt-0.5">
+                                <span id="prof-modal-usage-count" class="text-lg font-bold text-white font-mono">1 / 5</span>
+                                <span class="text-xs text-zinc-400">chat terpakai</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-zinc-500 uppercase font-semibold">Sisa Kredit</span>
+                            <div id="prof-modal-remaining-count" class="text-sm font-bold text-emerald-400 font-mono">4 Chat</div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-zinc-900 h-2.5 rounded-full overflow-hidden border border-zinc-800/80">
+                        <div id="prof-modal-progress-bar" class="bg-gradient-to-r from-blue-500 to-indigo-500 h-full transition-all duration-300" style="width: 20%;"></div>
+                    </div>
+
+                    <div class="flex items-center justify-between text-[11px] text-zinc-400 pt-1">
+                        <span class="flex items-center gap-1"><i class="fa-regular fa-clock text-blue-400"></i> Auto Reset Jam 00:00 WIB</span>
+                        <span id="prof-modal-limit-tag" class="font-mono text-zinc-300">Batas: 5 Chat/Hari</span>
+                    </div>
+                </div>
+
+                <!-- CTA Banner Upgrade -->
+                <div class="p-4 bg-gradient-to-r from-blue-950/40 via-indigo-950/30 to-zinc-950 border border-blue-500/30 rounded-2xl flex items-center justify-between gap-4 shadow-xl">
+                    <div class="space-y-1">
+                        <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+                            <i class="fa-solid fa-bolt text-amber-400"></i>
+                            <span>Butuh Kuota Obrolan AI Lebih Banyak?</span>
+                        </h4>
+                        <p class="text-[11px] text-zinc-400 leading-relaxed">Nikmati hingga 200 chat/hari dengan mengaktifkan paket langganan resmi via QRIS instant.</p>
+                    </div>
+                    <button onclick="openPackageModal(); closeProfileModal();" class="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-blue-500/20 transition shrink-0 flex items-center gap-1.5 active:scale-95">
+                        <i class="fa-solid fa-qrcode"></i>
+                        <span>Pilih Paket QRIS</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab 2: Transaction History -->
+            <div id="prof-tab-content-history" class="space-y-3 hidden">
+                <div class="flex items-center justify-between px-1">
+                    <span class="text-xs font-bold text-zinc-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-receipt text-blue-400"></i>
+                        <span>Daftar Transaksi Saya</span>
+                    </span>
+                    <button onclick="loadUserTransactions()" class="text-xs text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1">
+                        <i class="fa-solid fa-rotate-right text-[10px]"></i> Refresh
+                    </button>
+                </div>
+
+                <div id="prof-tx-history-box" class="max-h-72 overflow-y-auto space-y-2 pr-1">
+                    <p class="text-xs text-zinc-500 text-center py-6">Memuat riwayat transaksi...</p>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="flex justify-end gap-2 pt-2 border-t border-zinc-800">
+                <button onclick="closeProfileModal()" class="px-5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold py-2.5 rounded-xl transition">
                     Tutup
                 </button>
             </div>
@@ -893,6 +958,7 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
             const historyList = document.getElementById("history-sessions-list");
             const quizAuthBanner = document.getElementById("quiz-auth-banner");
             const quizMainContent = document.getElementById("quiz-main-content");
+            const sbUserFooter = document.getElementById("sidebar-user-footer");
 
             const chatLock = document.getElementById("chat-guest-lock");
             const chatWrapper = document.getElementById("chat-input-wrapper");
@@ -904,33 +970,61 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
                 const initial = name ? name[0].toUpperCase() : 'U';
                 let creditText = '';
                 let chatCreditText = '';
+                let planBadgeStr = 'Free Plan';
+
                 if (currentUser.role === 'admin') {
                     creditText = 'Unlimited Admin';
                     chatCreditText = '⚡ Kuota Chat: Unlimited (Admin)';
-                } else if (typeof currentUser.remaining_today !== 'undefined') {
-                    creditText = 'Sisa Kredit: ' + currentUser.remaining_today + '/' + currentUser.daily_limit + ' Chat Hari Ini';
-                    chatCreditText = '⚡ Sisa Kuota Hari Ini: ' + currentUser.remaining_today + ' / ' + currentUser.daily_limit + ' Chat';
-                } else {
-                    creditText = 'Limit: ' + currentUser.daily_limit + ' Chat/Hari';
-                    chatCreditText = '⚡ Paket Limit: ' + currentUser.daily_limit + ' Chat/Hari';
+                    planBadgeStr = 'Admin';
+                } else if (currentUser.daily_limit === 50) {
+                    planBadgeStr = 'Bronze';
+                } else if (currentUser.daily_limit === 100) {
+                    planBadgeStr = 'Silver';
+                } else if (currentUser.daily_limit === 200) {
+                    planBadgeStr = 'Gold';
+                }
+
+                if (currentUser.role !== 'admin') {
+                    const remaining = typeof currentUser.remaining_today !== 'undefined' ? currentUser.remaining_today : currentUser.daily_limit;
+                    creditText = 'Sisa Kredit: ' + remaining + '/' + currentUser.daily_limit + ' Chat';
+                    chatCreditText = '⚡ Sisa Kuota Hari Ini: ' + remaining + ' / ' + currentUser.daily_limit + ' Chat';
                 }
 
                 const chatIndicator = document.getElementById("chat-credit-indicator");
                 if (chatIndicator) chatIndicator.innerText = chatCreditText;
 
+                // Navbar User Info
                 container.innerHTML = '<div class="flex items-center space-x-2">' +
-                    '<span id="credit-badge" class="px-2.5 py-1 text-[11px] font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg flex items-center gap-1.5 shadow-sm">' +
+                    '<span id="credit-badge" onclick="openProfileModal(); switchProfTab(\'billing\');" class="px-2.5 py-1 text-[11px] font-medium bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 rounded-lg flex items-center gap-1.5 shadow-sm cursor-pointer transition">' +
                         '<i class="fa-solid fa-bolt text-[10px]"></i>' +
                         '<span>' + escapeHtml(creditText) + '</span>' +
                     '</span>' +
                     '<div class="flex items-center space-x-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 px-3 py-1 rounded-xl cursor-pointer transition" onclick="openProfileModal()">' +
-                        '<div class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">' + initial + '</div>' +
+                        '<div class="w-6 h-6 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">' + initial + '</div>' +
                         '<span class="text-xs font-semibold text-zinc-200 max-w-[100px] truncate">' + escapeHtml(name) + '</span>' +
                     '</div>' +
                     '<button onclick="logoutUser()" title="Keluar" class="text-zinc-400 hover:text-rose-400 p-1.5 transition">' +
                         '<i class="fa-solid fa-right-from-bracket text-xs"></i>' +
                     '</button>' +
                 '</div>';
+
+                // Sidebar User Widget Sync
+                if (sbUserFooter) {
+                    sbUserFooter.classList.remove("hidden");
+                    const sbAvatar = document.getElementById("sb-user-avatar");
+                    const sbName = document.getElementById("sb-user-name");
+                    const sbPlanBadge = document.getElementById("sb-user-plan-badge");
+                    const sbUsageStr = document.getElementById("sb-user-usage-str");
+
+                    if (sbAvatar) sbAvatar.innerText = initial;
+                    if (sbName) sbName.innerText = name;
+                    if (sbPlanBadge) sbPlanBadge.innerText = planBadgeStr;
+                    if (sbUsageStr) {
+                        const used = currentUser.used_today !== undefined ? currentUser.used_today : 0;
+                        sbUsageStr.innerText = currentUser.role === 'admin' ? 'Unlimited' : (used + '/' + currentUser.daily_limit);
+                    }
+                }
+
                 if (historyNotice) historyNotice.classList.add("hidden");
                 if (historyList) historyList.classList.remove("hidden");
                 if (quizAuthBanner) quizAuthBanner.classList.add("hidden");
@@ -944,6 +1038,7 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
                         '<i class="fa-solid fa-user-plus text-[10px]"></i>' +
                         '<span>Daftar</span>' +
                     '</button>';
+                if (sbUserFooter) sbUserFooter.classList.add("hidden");
                 if (historyNotice) historyNotice.classList.remove("hidden");
                 if (historyList) {
                     historyList.classList.add("hidden");
@@ -1146,40 +1241,91 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
             }
         }
 
+        function switchProfTab(tab) {
+            const btnBilling = document.getElementById("prof-tab-btn-billing");
+            const btnHistory = document.getElementById("prof-tab-btn-history");
+            const contentBilling = document.getElementById("prof-tab-content-billing");
+            const contentHistory = document.getElementById("prof-tab-content-history");
+
+            if (tab === "billing") {
+                if (btnBilling) btnBilling.className = "flex-1 py-2 text-xs font-semibold rounded-xl bg-blue-600 text-white transition flex items-center justify-center gap-1.5 shadow-sm";
+                if (btnHistory) btnHistory.className = "flex-1 py-2 text-xs font-medium text-zinc-400 hover:text-zinc-200 transition flex items-center justify-center gap-1.5";
+                if (contentBilling) contentBilling.classList.remove("hidden");
+                if (contentHistory) contentHistory.classList.add("hidden");
+            } else {
+                if (btnHistory) btnHistory.className = "flex-1 py-2 text-xs font-semibold rounded-xl bg-blue-600 text-white transition flex items-center justify-center gap-1.5 shadow-sm";
+                if (btnBilling) btnBilling.className = "flex-1 py-2 text-xs font-medium text-zinc-400 hover:text-zinc-200 transition flex items-center justify-center gap-1.5";
+                if (contentHistory) contentHistory.classList.remove("hidden");
+                if (contentBilling) contentBilling.classList.add("hidden");
+                loadUserTransactions();
+            }
+        }
+
         async function loadUserTransactions() {
             const container = document.getElementById("prof-tx-history-box");
             if (!container) return;
-            container.innerHTML = "<p class=\"text-[11px] text-zinc-500 text-center py-2\">Memuat riwayat transaksi...</p>";
+            container.innerHTML = '<div class="flex items-center justify-center py-6 text-zinc-500 text-xs gap-2"><i class="fa-solid fa-spinner animate-spin"></i> Memuat riwayat transaksi...</div>';
             try {
                 const res = await fetch("/api/payment/transactions");
                 const data = await res.json();
                 if (res.ok && data.transactions && data.transactions.length > 0) {
-                    let html = "";
+                    let html = '<div class="space-y-2">';
                     data.transactions.forEach(t => {
-                        let statusBadge = t.status === "paid"
-                            ? "<span class=\"px-1.5 py-0.5 text-[9px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded\">PAID</span>"
-                            : "<span class=\"px-1.5 py-0.5 text-[9px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded\">PENDING</span>";
+                        let statusBadge = "";
+                        let actionBtns = "";
 
-                        let formattedDate = new Date(t.created_at).toLocaleDateString("id-ID", {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"});
+                        if (t.status === "paid") {
+                            statusBadge = '<span class="px-2 py-0.5 text-[9px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-md flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> LUNAS</span>';
+                        } else if (t.status === "pending") {
+                            statusBadge = '<span class="px-2 py-0.5 text-[9px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-md flex items-center gap-1"><i class="fa-solid fa-clock"></i> PENDING</span>';
+                            actionBtns = '<div class="flex items-center gap-2 pt-2 border-t border-zinc-900">' +
+                                '<button onclick="resumePayment(\'' + t.id + '\', \'' + escapeHtml(t.tier_name) + '\', ' + t.amount + ', \'' + escapeHtml(t.qr_url) + '\')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-semibold rounded-lg transition flex items-center gap-1.5 shadow-sm active:scale-95">' +
+                                    '<i class="fa-solid fa-qrcode"></i> Bayar QRIS' +
+                                '</button>' +
+                                '<button onclick="cancelTxHistory(\'' + t.id + '\')" class="px-2.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 text-[11px] font-medium rounded-lg transition flex items-center gap-1">' +
+                                    '<i class="fa-solid fa-ban text-rose-400 text-[10px]"></i> Batalkan' +
+                                '</button>' +
+                            '</div>';
+                        } else {
+                            statusBadge = '<span class="px-2 py-0.5 text-[9px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-md flex items-center gap-1"><i class="fa-solid fa-circle-xmark"></i> EXPIRED</span>';
+                            actionBtns = '<div class="pt-2 border-t border-zinc-900">' +
+                                '<button onclick="deleteTxHistory(\'' + t.id + '\')" class="px-2.5 py-1 bg-zinc-900 hover:bg-rose-950/50 text-rose-400 border border-zinc-800 text-[10px] rounded-lg transition flex items-center gap-1">' +
+                                    '<i class="fa-solid fa-trash-can"></i> Hapus' +
+                                '</button>' +
+                            '</div>';
+                        }
 
-                        html += "<div class=\"p-2.5 bg-zinc-950 border border-zinc-800 rounded-xl flex items-center justify-between text-[11px]\">" +
-                            "<div>" +
-                                "<div class=\"font-bold text-white flex items-center gap-1.5\"><span>" + escapeHtml(t.tier_name) + "</span> " + statusBadge + "</div>" +
-                                "<div class=\"text-[10px] text-zinc-400 font-sans mt-0.5\">" + formattedDate + "</div>" +
-                            "</div>" +
-                            "<div class=\"text-right font-bold text-emerald-400 font-sans\">Rp " + t.amount.toLocaleString("id-ID") + "</div>" +
-                        "</div>";
+                        let formattedDate = new Date(t.created_at).toLocaleDateString("id-ID", {day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"});
+
+                        html += '<div class="p-3 bg-zinc-950 border border-zinc-800/80 rounded-2xl space-y-2 text-xs transition hover:border-zinc-700 shadow-sm">' +
+                            '<div class="flex items-center justify-between">' +
+                                '<div class="flex items-center gap-2">' +
+                                    '<span class="font-bold text-zinc-100 text-xs">' + escapeHtml(t.tier_name) + ' Tier</span>' +
+                                    statusBadge +
+                                '</div>' +
+                                '<span class="font-mono font-bold text-emerald-400 text-xs">Rp ' + t.amount.toLocaleString("id-ID") + '</span>' +
+                            '</div>' +
+                            '<div class="flex items-center justify-between text-[10px] text-zinc-500 font-mono">' +
+                                '<span>ID: ' + t.id.substring(0, 14) + '...</span>' +
+                                '<span>' + formattedDate + '</span>' +
+                            '</div>' +
+                            (actionBtns ? actionBtns : '') +
+                        '</div>';
                     });
+                    html += '</div>';
                     container.innerHTML = html;
                 } else {
-                    container.innerHTML = "<p class=\"text-[11px] text-zinc-500 text-center py-2 font-sans\">Belum ada riwayat transaksi.</p>";
+                    container.innerHTML = '<div class="p-8 text-center space-y-2 border border-dashed border-zinc-800 rounded-2xl">' +
+                        '<i class="fa-solid fa-receipt text-3xl text-zinc-600"></i>' +
+                        '<p class="text-xs text-zinc-300 font-bold">Belum Ada Riwayat Transaksi</p>' +
+                        '<p class="text-[11px] text-zinc-500">Pilih paket langganan untuk meningkatkan kuota obrolan harian Anda.</p>' +
+                    '</div>';
                 }
             } catch(e) {
-                container.innerHTML = "<p class=\"text-[11px] text-red-400 text-center py-2 font-sans\">Gagal memuat riwayat.</p>";
+                container.innerHTML = '<p class="text-xs text-rose-400 text-center py-4">Gagal memuat riwayat transaksi.</p>';
             }
         }
 
-        
         function resumePayment(txID, tierName, amount, qrURL) {
             closeProfileModal();
             currentTxID = txID;
@@ -1195,15 +1341,24 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
         }
 
         function openProfileModal() {
-            if (!currentUser) return;
+            if (!currentUser) return openAuthModal('login');
             const name = currentUser.full_name || currentUser.username;
             const initial = name ? name[0].toUpperCase() : 'U';
 
-            document.getElementById("prof-modal-avatar").innerText = initial;
-            document.getElementById("prof-modal-name").innerText = name;
-            document.getElementById("prof-modal-username").innerText = "@" + currentUser.username;
+            const avatarEl = document.getElementById("prof-modal-avatar");
+            const nameEl = document.getElementById("prof-modal-name");
+            const usernameEl = document.getElementById("prof-modal-username");
+            const roleEl = document.getElementById("prof-modal-role");
+            const usageCountEl = document.getElementById("prof-modal-usage-count");
+            const remainingCountEl = document.getElementById("prof-modal-remaining-count");
+            const progressBarEl = document.getElementById("prof-modal-progress-bar");
+            const limitTagEl = document.getElementById("prof-modal-limit-tag");
 
-            let roleText = "Free Tier";
+            if (avatarEl) avatarEl.innerText = initial;
+            if (nameEl) nameEl.innerText = name;
+            if (usernameEl) usernameEl.innerText = "@" + currentUser.username;
+
+            let roleText = "Free Plan";
             if (currentUser.role === "admin") {
                 roleText = "Unlimited Admin";
             } else if (currentUser.daily_limit === 50) {
@@ -1215,23 +1370,27 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
             } else if (currentUser.daily_limit > 5) {
                 roleText = "Custom Tier";
             }
-            document.getElementById("prof-modal-role").innerText = roleText;
+            if (roleEl) roleEl.innerText = roleText;
 
-            let limitStr = currentUser.daily_limit + " Chat / Hari";
-            let remainingStr = (currentUser.remaining_today !== undefined ? currentUser.remaining_today : currentUser.daily_limit) + " Chat";
-            let usedStr = (currentUser.used_today !== undefined ? currentUser.used_today : 0) + " Chat";
+            const limit = currentUser.daily_limit || 5;
+            const used = currentUser.used_today !== undefined ? currentUser.used_today : 0;
+            const remaining = currentUser.remaining_today !== undefined ? currentUser.remaining_today : (limit - used);
 
             if (currentUser.role === "admin") {
-                limitStr = "Unlimited";
-                remainingStr = "Unlimited";
-                usedStr = "Unlimited";
+                if (usageCountEl) usageCountEl.innerText = "Unlimited";
+                if (remainingCountEl) remainingCountEl.innerText = "Unlimited";
+                if (progressBarEl) progressBarEl.style.width = "100%";
+                if (limitTagEl) limitTagEl.innerText = "Batas: Unlimited";
+            } else {
+                if (usageCountEl) usageCountEl.innerText = used + " / " + limit;
+                if (remainingCountEl) remainingCountEl.innerText = remaining + " Chat";
+                const percentage = Math.min(100, Math.max(0, (used / limit) * 100));
+                if (progressBarEl) progressBarEl.style.width = percentage + "%";
+                if (limitTagEl) limitTagEl.innerText = "Batas: " + limit + " Chat/Hari";
             }
 
-            document.getElementById("prof-modal-limit").innerText = limitStr;
-            document.getElementById("prof-modal-remaining").innerText = remainingStr;
-            document.getElementById("prof-modal-used").innerText = usedStr;
-
-            document.getElementById("profile-modal").classList.remove("hidden"); loadUserTransactions();
+            switchProfTab('billing');
+            document.getElementById("profile-modal").classList.remove("hidden");
         }
 
         function closeProfileModal() {
@@ -1360,26 +1519,33 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 
         function renderSessionsList(sessions) {
             const container = document.getElementById("history-sessions-list");
+            const badge = document.getElementById("session-count-badge");
+            if (badge) badge.innerText = sessions.length + " Chat";
+
             container.innerHTML = "";
 
             if (sessions.length === 0) {
-                container.innerHTML = '<p class="text-xs text-zinc-500 text-center py-4">Belum ada riwayat percakapan.</p>';
+                container.innerHTML = '<div class="p-6 text-center space-y-1.5 text-zinc-500">' +
+                    '<i class="fa-regular fa-comments text-2xl"></i>' +
+                    '<p class="text-xs font-medium text-zinc-400">Belum ada percakapan</p>' +
+                    '<p class="text-[11px]">Klik "Percakapan Baru" di atas untuk mulai obrolan.</p>' +
+                '</div>';
                 return;
             }
 
             sessions.forEach(s => {
                 const item = document.createElement("div");
                 const isActive = s.id === activeSessionID;
-                item.className = "p-3 rounded-xl border text-xs cursor-pointer transition flex items-center justify-between group " +
-                    (isActive ? "bg-blue-600/10 border-blue-500/40 text-blue-300" : "bg-zinc-900/60 hover:bg-zinc-900 border-zinc-800/80 text-zinc-300");
+                item.className = "p-2.5 rounded-xl border text-xs cursor-pointer transition flex items-center justify-between group " +
+                    (isActive ? "bg-blue-600/15 border-blue-500/40 text-blue-300 font-semibold shadow-sm" : "bg-zinc-900/60 hover:bg-zinc-900 border-zinc-800/80 text-zinc-300");
 
                 item.onclick = () => loadSessionMessages(s.id);
 
                 item.innerHTML = '<div class="flex items-center space-x-2.5 min-w-0 flex-1">' +
                         '<i class="fa-regular fa-message text-blue-400 shrink-0 text-xs"></i>' +
-                        '<span class="truncate font-medium">' + escapeHtml(s.title) + '</span>' +
+                        '<span class="truncate font-medium leading-snug">' + escapeHtml(s.title) + '</span>' +
                     '</div>' +
-                    '<button onclick="deleteSession(event, \'' + s.id + '\')" title="Hapus Chat" class="opacity-0 group-hover:opacity-100 text-zinc-500 hover:text-rose-400 p-1 transition ml-1">' +
+                    '<button onclick="deleteSession(event, \'' + s.id + '\')" title="Hapus Percakapan" class="opacity-0 group-hover:opacity-100 text-zinc-500 hover:text-rose-400 p-1 transition ml-1 shrink-0">' +
                         '<i class="fa-solid fa-trash-can text-[11px]"></i>' +
                     '</button>';
                 container.appendChild(item);

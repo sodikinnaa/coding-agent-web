@@ -349,6 +349,19 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 
         <aside id="sidebar-docs" class="w-72 md:w-80 bg-zinc-950 border-r border-zinc-800 p-4 fixed lg:static inset-y-0 left-0 z-40 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col h-full shrink-0">
             
+            <!-- Mobile Drawer Top Header -->
+            <div class="flex items-center justify-between pb-3 mb-3 border-b border-zinc-800 lg:hidden shrink-0">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-lg bg-blue-600/20 border border-blue-500/30 text-blue-400 flex items-center justify-center text-xs">
+                        <i class="fa-solid fa-bars-staggered"></i>
+                    </div>
+                    <span class="text-xs font-bold text-zinc-200">Menu & Riwayat</span>
+                </div>
+                <button onclick="toggleMobileSidebar()" class="w-7 h-7 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center text-xs transition border border-zinc-800">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
             <!-- Sidebar Navigation Tabs: History vs Knowledge Base -->
             <div class="flex items-center bg-zinc-900 border border-zinc-800 p-1 rounded-xl mb-4 shrink-0">
                 <button id="tab-btn-history" onclick="switchSidebarTab('history')" class="flex-1 py-1.5 rounded-lg text-xs font-medium bg-blue-600 text-white transition flex items-center justify-center gap-1.5 shadow-sm">
@@ -1026,17 +1039,20 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
                 const chatIndicator = document.getElementById("chat-credit-indicator");
                 if (chatIndicator) chatIndicator.innerText = chatCreditText;
 
+                const shortCreditText = currentUser.role === 'admin' ? 'Unlimited' : (remaining + '/' + currentUser.daily_limit);
+
                 // Navbar User Info
-                container.innerHTML = '<div class="flex items-center space-x-2">' +
-                    '<span id="credit-badge" onclick="openProfileModal(); switchProfTab(\'billing\');" class="px-2.5 py-1 text-[11px] font-medium bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 rounded-lg flex items-center gap-1.5 shadow-sm cursor-pointer transition">' +
+                container.innerHTML = '<div class="flex items-center space-x-1.5 sm:space-x-2">' +
+                    '<span id="credit-badge" onclick="openProfileModal(); switchProfTab(\'billing\');" class="px-2 py-1 text-[10px] sm:text-[11px] font-medium bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 rounded-lg flex items-center gap-1 shadow-sm cursor-pointer transition">' +
                         '<i class="fa-solid fa-bolt text-[10px]"></i>' +
-                        '<span>' + escapeHtml(creditText) + '</span>' +
+                        '<span class="hidden sm:inline">' + escapeHtml(currentUser.role === 'admin' ? 'Kredit: ' : 'Sisa Kredit: ') + '</span>' +
+                        '<span>' + escapeHtml(shortCreditText) + '</span>' +
                     '</span>' +
-                    '<div class="flex items-center space-x-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 px-3 py-1 rounded-xl cursor-pointer transition" onclick="openProfileModal()">' +
-                        '<div class="w-6 h-6 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">' + initial + '</div>' +
-                        '<span class="text-xs font-semibold text-zinc-200 max-w-[100px] truncate">' + escapeHtml(name) + '</span>' +
+                    '<div class="flex items-center space-x-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 px-2 py-1 sm:px-3 rounded-xl cursor-pointer transition" onclick="openProfileModal()">' +
+                        '<div class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center text-[10px] sm:text-xs font-bold shadow-sm">' + initial + '</div>' +
+                        '<span class="text-xs font-semibold text-zinc-200 max-w-[60px] sm:max-w-[100px] truncate hidden sm:inline-block">' + escapeHtml(name) + '</span>' +
                     '</div>' +
-                    '<button onclick="logoutUser()" title="Keluar" class="text-zinc-400 hover:text-rose-400 p-1.5 transition">' +
+                    '<button onclick="logoutUser()" title="Keluar" class="text-zinc-400 hover:text-rose-400 p-1 transition">' +
                         '<i class="fa-solid fa-right-from-bracket text-xs"></i>' +
                     '</button>' +
                 '</div>';
@@ -1589,6 +1605,12 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
         async function loadSessionMessages(sessionID) {
             activeSessionID = sessionID;
             loadUserSessions();
+            if (window.innerWidth < 1024) {
+                const sidebar = document.getElementById('sidebar-docs');
+                if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
+                    toggleMobileSidebar();
+                }
+            }
 
             try {
                 const res = await fetch('/api/session/messages?id=' + encodeURIComponent(sessionID));
@@ -1635,6 +1657,12 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
                     '</div>' +
                 '</div>';
             if (currentUser) loadUserSessions();
+            if (window.innerWidth < 1024) {
+                const sidebar = document.getElementById('sidebar-docs');
+                if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
+                    toggleMobileSidebar();
+                }
+            }
         }
 
         function toggleMobileSidebar() {

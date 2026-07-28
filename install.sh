@@ -96,8 +96,8 @@ fi
 
 # Systemd Service Installation / Restart
 if command -v systemctl &> /dev/null; then
-    if [ ! -f "/etc/systemd/system/coding-knowledge.service" ]; then
-        sudo tee /etc/systemd/system/coding-knowledge.service > /dev/null <<EOF
+    echo "⚙️ Menyiapkan systemd service (binding 0.0.0.0:8097)..."
+    sudo tee /etc/systemd/system/coding-knowledge.service > /dev/null <<EOF
 [Unit]
 Description=Koding and AI Knowledge Web Application
 After=network.target
@@ -107,16 +107,16 @@ Type=simple
 User=root
 WorkingDirectory=$INSTALL_DIR
 ExecStart=$INSTALL_DIR/coding_agent_app
+Environment=PORT=8097
 Restart=always
 RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target
 EOF
-        sudo systemctl daemon-reload
-        sudo systemctl enable coding-knowledge.service
-    fi
 
+    sudo systemctl daemon-reload
+    sudo systemctl enable coding-knowledge.service
     sudo systemctl restart coding-knowledge.service || true
 fi
 
@@ -125,14 +125,16 @@ echo "======================================================"
 if [ $IS_UPDATE -eq 1 ]; then
     echo " 🎉 Pembaruan Berhasil! (Update Successful)"
     echo " ------------------------------------------------------"
+    echo " 🌐 Host Binding : 0.0.0.0:8097 (Semua Interface & Tailscale)"
     echo " 🔑 Admin Credentials:"
-    echo "    Username : $ADMIN_USER"
-    echo "    Password : $ADMIN_PASS (Tetap / Tidak Berubah)"
+    echo "    Username    : $ADMIN_USER"
+    echo "    Password    : $ADMIN_PASS (Tetap / Tidak Berubah)"
 else
     echo " 🎉 Instalasi Baru Berhasil! (Fresh Install Successful)"
     echo " ------------------------------------------------------"
+    echo " 🌐 Host Binding : 0.0.0.0:8097 (Semua Interface & Tailscale)"
     echo " 🔑 Admin Credentials (Dibuat Acak Otomatis):"
-    echo "    Username : $ADMIN_USER"
-    echo "    Password : $ADMIN_PASS"
+    echo "    Username    : $ADMIN_USER"
+    echo "    Password    : $ADMIN_PASS"
 fi
 echo "======================================================"

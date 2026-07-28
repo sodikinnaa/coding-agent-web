@@ -35,6 +35,7 @@ func main() {
 	http.HandleFunc("/api/session/messages", handler.HandleGetSessionMessages)
 	http.HandleFunc("/api/session/delete", handler.HandleDeleteSession)
 	http.HandleFunc("/api/quiz/generate", handler.HandleGenerateQuiz)
+	http.HandleFunc("/api/quiz/verify-answer", handler.HandleVerifyQuizAnswer)
 	http.HandleFunc("/api/quiz/score/save", handler.HandleSaveQuizScore)
 	http.HandleFunc("/api/quiz/leaderboard", handler.HandleGetLeaderboard)
 

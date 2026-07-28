@@ -33,6 +33,76 @@ type QuizQuestion struct {
 	ReferenceBook string   `json:"reference_book"`
 }
 
+type ClientQuizQuestion struct {
+	ID            int      `json:"id"`
+	Question      string   `json:"question"`
+	Options       []string `json:"options"`
+	ReferenceBook string   `json:"reference_book"`
+}
+
+type QuizSessionData struct {
+	ID        string
+	UserID    int64
+	Grade     string
+	Questions []QuizQuestion
+	CreatedAt time.Time
+}
+
+var (
+	quizSessions      = make(map[string]*QuizSessionData)
+	quizSessionsMutex sync.RWMutex
+)
+
+func CreateQuizSession(userID int64, categoryID int64, grade string) (string, []ClientQuizQuestion, error) {
+	questions, err := GenerateQuizByCategory(categoryID, grade)
+	if err != nil {
+		return "", nil, err
+	}
+
+	sessionID := fmt.Sprintf("qz_%d_%d", time.Now().UnixNano(), userID)
+
+	quizSessionsMutex.Lock()
+	quizSessions[sessionID] = &QuizSessionData{
+		ID:        sessionID,
+		UserID:    userID,
+		Grade:     grade,
+		Questions: questions,
+		CreatedAt: time.Now(),
+	}
+	quizSessionsMutex.Unlock()
+
+	clientQuestions := make([]ClientQuizQuestion, len(questions))
+	for i, q := range questions {
+		clientQuestions[i] = ClientQuizQuestion{
+			ID:            q.ID,
+			Question:      q.Question,
+			Options:       q.Options,
+			ReferenceBook: q.ReferenceBook,
+		}
+	}
+
+	return sessionID, clientQuestions, nil
+}
+
+func VerifyQuizAnswer(sessionID string, qIndex int, selectedIndex int) (bool, int, string, error) {
+	quizSessionsMutex.RLock()
+	session, exists := quizSessions[sessionID]
+	quizSessionsMutex.RUnlock()
+
+	if !exists {
+		return false, 0, "", fmt.Errorf("Sesi kuis tidak ditemukan atau telah kedaluwarsa")
+	}
+
+	if qIndex < 0 || qIndex >= len(session.Questions) {
+		return false, 0, "", fmt.Errorf("Indeks soal tidak valid")
+	}
+
+	q := session.Questions[qIndex]
+	isCorrect := (selectedIndex == q.CorrectIndex)
+
+	return isCorrect, q.CorrectIndex, q.Explanation, nil
+}
+
 // In-memory cache for Base64 encoded document content to avoid re-reading and re-encoding on every request
 var (
 	docBase64Cache = make(map[string]string)

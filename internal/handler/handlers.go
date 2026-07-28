@@ -1736,6 +1736,7 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 
         // Quiz State
         let currentQuiz = [];
+        let currentQuizSessionID = "";
         let currentQIndex = 0;
         let userAnswers = {};
         let score = 0;
@@ -1798,6 +1799,7 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 
                 if (data.questions && data.questions.length > 0) {
                     currentQuiz = data.questions;
+                    currentQuizSessionID = data.quiz_session_id || "";
                     currentQIndex = 0;
                     userAnswers = {};
                     score = 0;
@@ -1827,20 +1829,20 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
             const explanationBox = document.getElementById('quiz-explanation');
             explanationBox.classList.add('hidden');
 
-            const answered = userAnswers[currentQIndex] !== undefined;
+            const ans = userAnswers[currentQIndex]; // Object if answered: { selectedIndex, isCorrect, correctIndex, explanation }
 
             q.options.forEach((opt, idx) => {
                 const btn = document.createElement('button');
                 btn.className = "w-full text-left p-3.5 rounded-xl border text-xs font-medium transition flex items-center justify-between ";
 
-                if (!answered) {
+                if (!ans) {
                     btn.className += "bg-zinc-950 border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-900";
                     btn.onclick = () => selectAnswer(idx);
                 } else {
-                    if (idx === q.correct_index) {
-                        btn.className += "bg-emerald-950/40 border-emerald-500/50 text-emerald-300";
-                    } else if (userAnswers[currentQIndex] === idx) {
-                        btn.className += "bg-rose-950/40 border-rose-500/50 text-rose-300";
+                    if (idx === ans.correctIndex) {
+                        btn.className += "bg-emerald-950/40 border-emerald-500/50 text-emerald-300 font-semibold";
+                    } else if (ans.selectedIndex === idx) {
+                        btn.className += "bg-rose-950/40 border-rose-500/50 text-rose-300 font-semibold";
                     } else {
                         btn.className += "bg-zinc-950/50 border-zinc-800/50 text-zinc-600 cursor-not-allowed";
                     }
@@ -1849,19 +1851,18 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
                 btn.innerHTML = '<div class="flex items-center gap-3">' +
                     '<span class="w-6 h-6 rounded-lg bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-400">' + String.fromCharCode(65 + idx) + '</span>' +
                     '<span>' + escapeHtml(opt) + '</span></div>' +
-                    (answered && idx === q.correct_index ? '<i class="fa-solid fa-circle-check text-emerald-400"></i>' : '') +
-                    (answered && userAnswers[currentQIndex] === idx && idx !== q.correct_index ? '<i class="fa-solid fa-circle-xmark text-rose-400"></i>' : '');
+                    (ans && idx === ans.correctIndex ? '<i class="fa-solid fa-circle-check text-emerald-400"></i>' : '') +
+                    (ans && ans.selectedIndex === idx && !ans.isCorrect ? '<i class="fa-solid fa-circle-xmark text-rose-400"></i>' : '');
 
                 optionsBox.appendChild(btn);
             });
 
-            if (answered) {
+            if (ans) {
                 explanationBox.classList.remove('hidden');
-                const isCorrect = userAnswers[currentQIndex] === q.correct_index;
                 const badge = document.getElementById('quiz-result-badge');
-                badge.className = isCorrect ? "text-emerald-400 font-bold mb-1" : "text-rose-400 font-bold mb-1";
-                badge.innerText = isCorrect ? "✓ Jawaban Kamu Benar!" : "✓ Jawaban Kamu Kurang Tepat!";
-                document.getElementById('quiz-explanation-text').innerText = q.explanation;
+                badge.className = ans.isCorrect ? "text-emerald-400 font-bold mb-1" : "text-rose-400 font-bold mb-1";
+                badge.innerText = ans.isCorrect ? "✓ Jawaban Kamu Benar!" : "✓ Jawaban Kamu Kurang Tepat!";
+                document.getElementById('quiz-explanation-text').innerText = ans.explanation || '-';
             }
 
             document.getElementById('btn-prev-q').style.display = currentQIndex > 0 ? 'flex' : 'none';
@@ -1873,15 +1874,39 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
             }
         }
 
-        function selectAnswer(index) {
+        async function selectAnswer(index) {
             if (userAnswers[currentQIndex] !== undefined) return;
 
-            userAnswers[currentQIndex] = index;
-            const q = currentQuiz[currentQIndex];
-            if (index === q.correct_index) {
-                score += 20;
+            try {
+                const res = await fetch('/api/quiz/verify-answer', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        quiz_session_id: currentQuizSessionID,
+                        question_index: currentQIndex,
+                        selected_index: index
+                    })
+                });
+                const data = await res.json();
+                if (res.ok && typeof data.is_correct !== 'undefined') {
+                    userAnswers[currentQIndex] = {
+                        selectedIndex: index,
+                        isCorrect: data.is_correct,
+                        correctIndex: data.correct_index,
+                        explanation: data.explanation
+                    };
+
+                    if (data.is_correct) {
+                        const ptsPerQ = Math.round(100 / currentQuiz.length);
+                        score += ptsPerQ;
+                    }
+                    renderQuestion();
+                } else {
+                    alert('Gagal memverifikasi jawaban: ' + (data.error || 'Terjadi kesalahan'));
+                }
+            } catch(e) {
+                alert('Gagal terhubung ke server verifikasi kuis.');
             }
-            renderQuestion();
         }
 
         function nextQuestion() {
@@ -2149,12 +2174,55 @@ func HandleGenerateQuiz(w http.ResponseWriter, r *http.Request) {
 		req.Grade = "Kelas 5 SD"
 	}
 
-	questions, err := service.GenerateQuizByCategory(req.CategoryID, req.Grade)
+	sessionID, questions, err := service.CreateQuizSession(user.ID, req.CategoryID, req.Grade)
 	if err != nil {
 		json.NewEncoder(w).Encode(map[string]interface{}{"error": err.Error()})
 	} else {
-		json.NewEncoder(w).Encode(map[string]interface{}{"questions": questions})
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"quiz_session_id": sessionID,
+			"questions":       questions,
+		})
 	}
+}
+
+func HandleVerifyQuizAnswer(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	user, err := auth.GetUserFromRequest(r)
+	if err != nil || user == nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]interface{}{"error": "Unauthorized"})
+		return
+	}
+
+	var req struct {
+		QuizSessionID string `json:"quiz_session_id"`
+		QuestionIndex int    `json:"question_index"`
+		SelectedIndex int    `json:"selected_index"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{"error": "Payload request tidak valid"})
+		return
+	}
+
+	isCorrect, correctIndex, explanation, err := service.VerifyQuizAnswer(req.QuizSessionID, req.QuestionIndex, req.SelectedIndex)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{"error": err.Error()})
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"is_correct":    isCorrect,
+		"correct_index": correctIndex,
+		"explanation":   explanation,
+	})
 }
 
 func HandleSaveQuizScore(w http.ResponseWriter, r *http.Request) {

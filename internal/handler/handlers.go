@@ -1918,6 +1918,29 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
             }
         }
 
+        function maskEmailOrName(str) {
+            if (!str) return 'user***';
+            str = str.trim();
+            if (str.includes('***')) return str;
+            if (str.includes('@')) {
+                const parts = str.split('@');
+                const user = parts[0];
+                const domain = parts[1];
+                let maskedUser = user;
+                if (user.length <= 2) {
+                    maskedUser = user[0] + '***';
+                } else if (user.length <= 4) {
+                    maskedUser = user[0] + '***' + user[user.length - 1];
+                } else {
+                    maskedUser = user.substring(0, 2) + '***' + user.substring(user.length - 2);
+                }
+                return maskedUser + '@' + domain;
+            }
+            if (str.length <= 2) return str[0] + '***';
+            if (str.length <= 5) return str[0] + '***' + str[str.length - 1];
+            return str.substring(0, 3) + '***' + str.substring(str.length - 2);
+        }
+
         async function loadLeaderboard() {
             const tbody = document.getElementById('leaderboard-tbody');
             if (!tbody) return;
@@ -1941,11 +1964,12 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
                             rankBadge = '<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-zinc-800 text-zinc-400 font-bold text-xs">' + (index + 1) + '</span>';
                         }
 
-                        const displayName = escapeHtml(entry.full_name || entry.username);
+                        const maskedName = maskEmailOrName(entry.full_name || entry.username);
+                        const maskedUser = maskEmailOrName(entry.username);
                         const grade = escapeHtml(entry.high_grade || '-');
 
                         tr.innerHTML = '<td class="py-3 px-3">' + rankBadge + '</td>' +
-                            '<td class="py-3 px-3 font-medium text-zinc-200">' + displayName + ' <span class="text-[10px] text-zinc-500">(@' + escapeHtml(entry.username) + ')</span></td>' +
+                            '<td class="py-3 px-3 font-medium text-zinc-200">' + escapeHtml(maskedName) + ' <span class="text-[10px] text-zinc-500 font-mono">(@' + escapeHtml(maskedUser) + ')</span></td>' +
                             '<td class="py-3 px-3 text-center"><span class="px-2 py-0.5 text-[10px] bg-zinc-800 text-zinc-400 rounded-md border border-zinc-700">' + grade + '</span></td>' +
                             '<td class="py-3 px-3 text-center text-zinc-300 font-mono">' + entry.quiz_count + '</td>' +
                             '<td class="py-3 px-3 text-right font-bold text-blue-400 font-mono">' + entry.total_score + '</td>';

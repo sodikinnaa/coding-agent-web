@@ -148,6 +148,36 @@ func SaveQuizScore(userID int64, grade string, score, totalQuestions int) error 
 	return err
 }
 
+func maskIdentifier(s string) string {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return "user***"
+	}
+
+	if strings.Contains(s, "@") {
+		parts := strings.SplitN(s, "@", 2)
+		local := parts[0]
+		domain := parts[1]
+
+		if len(local) <= 2 {
+			local = string(local[0]) + "***"
+		} else if len(local) <= 4 {
+			local = string(local[0]) + "***" + string(local[len(local)-1])
+		} else {
+			local = local[:2] + "***" + local[len(local)-2:]
+		}
+		return local + "@" + domain
+	}
+
+	if len(s) <= 2 {
+		return string(s[0]) + "***"
+	} else if len(s) <= 5 {
+		return string(s[0]) + "***" + string(s[len(s)-1])
+	} else {
+		return s[:3] + "***" + s[len(s)-2:]
+	}
+}
+
 func GetLeaderboard() ([]model.LeaderboardEntry, error) {
 	query := `
 	SELECT u.id, u.username, u.full_name, SUM(qs.score) as total_score, COUNT(qs.id) as quiz_count, MAX(qs.grade) as high_grade
@@ -167,6 +197,10 @@ func GetLeaderboard() ([]model.LeaderboardEntry, error) {
 	for rows.Next() {
 		var entry model.LeaderboardEntry
 		if err := rows.Scan(&entry.UserID, &entry.Username, &entry.FullName, &entry.TotalScore, &entry.QuizCount, &entry.HighGrade); err == nil {
+			entry.Username = maskIdentifier(entry.Username)
+			if entry.FullName != "" {
+				entry.FullName = maskIdentifier(entry.FullName)
+			}
 			leaderboard = append(leaderboard, entry)
 		}
 	}

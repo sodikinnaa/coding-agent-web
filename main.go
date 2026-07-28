@@ -97,5 +97,5 @@ func main() {
 	}
 
 	fmt.Printf("Clean Go Server starting on http://0.0.0.0:%s\n", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Fatal(http.ListenAndServe("0.0.0.0:"+port, nil))
 }

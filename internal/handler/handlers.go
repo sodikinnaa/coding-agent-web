@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"html/template"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -3088,19 +3089,35 @@ func HandleMayarWebhook(w http.ResponseWriter, r *http.Request) {
 
 	// Mayar Webhook Event payload extraction
 	var txID string
+	var amount float64
+
 	if dataObj, ok := body["data"].(map[string]interface{}); ok {
 		if idVal, ok := dataObj["id"].(string); ok {
 			txID = idVal
+		}
+		if txID == "" {
+			if idVal, ok := dataObj["transactionId"].(string); ok {
+				txID = idVal
+			}
 		}
 		if txID == "" {
 			if idVal, ok := dataObj["mobileVia"].(string); ok {
 				txID = idVal
 			}
 		}
+
+		if amtVal, ok := dataObj["amount"].(float64); ok {
+			amount = amtVal
+		} else if amtVal, ok := dataObj["paymentLinkAmount"].(float64); ok {
+			amount = amtVal
+		} else if amtVal, ok := dataObj["nettAmount"].(float64); ok {
+			amount = amtVal
+		}
 	}
 
-	if txID != "" {
-		_ = service.ProcessMayarPaymentSuccess(txID)
+	err := service.ProcessMayarPaymentSuccess(txID, amount)
+	if err != nil {
+		log.Printf("Webhook Mayar Payment Note: %v", err)
 	}
 
 	json.NewEncoder(w).Encode(map[string]interface{}{"success": true})

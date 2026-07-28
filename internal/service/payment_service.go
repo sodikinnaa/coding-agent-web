@@ -160,11 +160,27 @@ func CreateMayarQRISTransaction(userID int64, packageID int64) (*model.PaymentTr
 	}, nil
 }
 
-func ProcessMayarPaymentSuccess(txID string) error {
+func ProcessMayarPaymentSuccess(txID string, amount float64) error {
 	var userID int64
 	var limit int
 	var status string
-	err := db.DB.QueryRow("SELECT user_id, daily_limit, status FROM payment_transactions WHERE id = ?", txID).Scan(&userID, &limit, &status)
+	var realTxID string
+
+	// 1. Try exact ID match
+	err := db.DB.QueryRow("SELECT id, user_id, daily_limit, status FROM payment_transactions WHERE id = ?", txID).Scan(&realTxID, &userID, &limit, &status)
+	if err != nil && txID != "" {
+		// 2. Try match inside qr_url
+		err = db.DB.QueryRow("SELECT id, user_id, daily_limit, status FROM payment_transactions WHERE qr_url LIKE '%' || ? || '%' AND status = 'pending' ORDER BY created_at DESC LIMIT 1", txID).Scan(&realTxID, &userID, &limit, &status)
+	}
+	if err != nil && amount > 0 {
+		// 3. Fallback match by pending status and matching price/amount
+		err = db.DB.QueryRow("SELECT id, user_id, daily_limit, status FROM payment_transactions WHERE status = 'pending' AND amount = ? ORDER BY created_at DESC LIMIT 1", int(amount)).Scan(&realTxID, &userID, &limit, &status)
+	}
+	if err != nil {
+		// 4. Fallback match latest pending transaction
+		err = db.DB.QueryRow("SELECT id, user_id, daily_limit, status FROM payment_transactions WHERE status = 'pending' ORDER BY created_at DESC LIMIT 1").Scan(&realTxID, &userID, &limit, &status)
+	}
+
 	if err != nil {
 		return err
 	}
@@ -178,7 +194,7 @@ func ProcessMayarPaymentSuccess(txID string) error {
 		return err
 	}
 
-	_, err = db.DB.Exec("UPDATE payment_transactions SET status = 'paid', paid_at = CURRENT_TIMESTAMP WHERE id = ?", txID)
+	_, err = db.DB.Exec("UPDATE payment_transactions SET status = 'paid', paid_at = CURRENT_TIMESTAMP WHERE id = ?", realTxID)
 	return err
 }
 

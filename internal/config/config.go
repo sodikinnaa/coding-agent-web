@@ -15,7 +15,7 @@ import (
 	"coding_agent_web/internal/model"
 )
 
-const ConfigPath = "/root/coding_agent_web/config.json"
+const ConfigPath = "config.json"
 const EncPrefix = "ENC:AES256GCM:"
 const SecretMasterKey = "antigravity-ai-kurikulum-master-secret-key-v1"
 

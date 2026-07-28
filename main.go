@@ -14,7 +14,7 @@ import (
 
 func main() {
 	config.LoadConfig()
-	db.InitDB("/root/coding_agent_web/data.db")
+	db.InitDB("data.db")
 	knowledge.LoadKnowledgeBase()
 
 	// Public & Doc Routes

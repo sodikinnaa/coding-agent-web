@@ -288,55 +288,55 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 </head>
 <body class="bg-black text-zinc-100 flex flex-col h-screen overflow-hidden">
     <!-- Navbar -->
-    <header class="h-14 border-b border-zinc-800 bg-zinc-950/80 backdrop-blur px-3 md:px-6 flex justify-between items-center z-20 shrink-0">
-        <div class="flex items-center space-x-2.5">
-            <!-- Mobile Sidebar Toggle Button -->
-            <button onclick="toggleMobileSidebar()" class="lg:hidden text-zinc-400 hover:text-white p-2 rounded-lg bg-zinc-900 border border-zinc-800 transition active:scale-95">
-                <i class="fa-solid fa-book-open text-xs"></i>
+    <header class="h-14 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur px-2.5 sm:px-4 md:px-6 flex justify-between items-center z-20 shrink-0 gap-2">
+        <!-- Left: Hamburger + App Branding -->
+        <div class="flex items-center gap-2 shrink-0">
+            <button onclick="toggleMobileSidebar()" class="lg:hidden text-zinc-300 hover:text-white p-2 rounded-xl bg-zinc-900 border border-zinc-800 transition active:scale-95 flex items-center justify-center shrink-0" title="Menu Sidebar">
+                <i class="fa-solid fa-bars text-xs"></i>
             </button>
 
-            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white font-semibold text-sm shadow-lg shadow-blue-500/20 shrink-0">
-                <i class="fa-solid fa-sparkles text-xs"></i>
-            </div>
-            <!-- Navbar Badge -->
-            <div>
-                <h1 class="text-xs md:text-sm font-semibold text-zinc-100 flex items-center gap-1.5">
-                    <span class="truncate max-w-[120px] sm:max-w-none">Kurikulum Koding & AI</span>
-                    <span class="hidden sm:inline-block px-2 py-0.5 text-[10px] font-medium bg-gradient-to-r from-blue-500/10 to-indigo-500/10 text-blue-400 border border-blue-500/20 rounded-full flex items-center gap-1">
-                        <i class="fa-solid fa-eye text-[9px]"></i> Direct PDF Vision AI & Quiz
-                    </span>
-                </h1>
+            <div class="flex items-center gap-2">
+                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white font-semibold text-xs sm:text-sm shadow-md shrink-0">
+                    <i class="fa-solid fa-sparkles text-[11px] sm:text-xs"></i>
+                </div>
+                <div class="min-w-0">
+                    <h1 class="text-xs sm:text-sm font-bold text-zinc-100 flex items-center gap-1.5 leading-none">
+                        <span class="inline md:hidden">AI Koding</span>
+                        <span class="hidden md:inline">Kurikulum Koding & AI</span>
+                        <span class="hidden xl:inline-flex px-2 py-0.5 text-[10px] font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full items-center gap-1">
+                            <i class="fa-solid fa-eye text-[9px]"></i> Vision AI & Quiz
+                        </span>
+                    </h1>
+                </div>
             </div>
         </div>
 
-        <!-- Toggle Mode: Chat vs Quiz -->
-        <div class="flex items-center bg-zinc-900 border border-zinc-800 p-0.5 md:p-1 rounded-xl">
-            <button id="btn-mode-chat" onclick="switchMode('chat')" class="px-2.5 md:px-3 py-1 rounded-lg text-xs font-medium bg-blue-600 text-white transition flex items-center gap-1.5 shadow-sm">
-                <i class="fa-regular fa-comments"></i>
-                <span class="hidden sm:inline">Tanya Jawab AI</span>
-                <span class="sm:hidden">Chat</span>
+        <!-- Center: Mode Switcher (Chat vs Quiz) -->
+        <div class="flex items-center bg-zinc-900 border border-zinc-800 p-0.5 rounded-xl shrink-0">
+            <button id="btn-mode-chat" onclick="switchMode('chat')" class="px-2 sm:px-3 py-1 rounded-lg text-[11px] sm:text-xs font-medium bg-blue-600 text-white transition flex items-center gap-1 shadow-sm">
+                <i class="fa-regular fa-comments text-[11px]"></i>
+                <span class="hidden xs:inline">Chat</span>
             </button>
-            <button id="btn-mode-quiz" onclick="switchMode('quiz')" class="px-2.5 md:px-3 py-1 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 transition flex items-center gap-1.5">
-                <i class="fa-solid fa-list-check"></i>
-                <span class="hidden sm:inline">Kuis Interaktif</span>
-                <span class="sm:hidden">Kuis</span>
+            <button id="btn-mode-quiz" onclick="switchMode('quiz')" class="px-2 sm:px-3 py-1 rounded-lg text-[11px] sm:text-xs font-medium text-zinc-400 hover:text-zinc-200 transition flex items-center gap-1">
+                <i class="fa-solid fa-list-check text-[11px]"></i>
+                <span class="hidden xs:inline">Kuis</span>
             </button>
         </div>
 
-        <div class="flex items-center space-x-2">
-            <!-- User Auth Container -->
-            <div id="auth-container" class="flex items-center space-x-2">
-                <button onclick="openAuthModal('login')" class="text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg transition shadow-sm flex items-center gap-1.5">
+        <!-- Right: Auth / Profile Container -->
+        <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <div id="auth-container" class="flex items-center gap-1.5">
+                <button onclick="openAuthModal('login')" class="text-[11px] sm:text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white px-2.5 sm:px-3 py-1.5 rounded-lg transition shadow-sm flex items-center gap-1">
                     <i class="fa-solid fa-right-to-bracket text-[10px]"></i>
                     <span>Masuk</span>
                 </button>
-                <button onclick="openAuthModal('register')" class="text-xs font-medium bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-lg border border-zinc-700 transition flex items-center gap-1.5 shadow-sm">
+                <button onclick="openAuthModal('register')" class="hidden sm:flex text-xs font-medium bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-lg border border-zinc-700 transition items-center gap-1 shadow-sm">
                     <i class="fa-solid fa-user-plus text-[10px]"></i>
                     <span>Daftar</span>
                 </button>
             </div>
 
-            <a href="/login" class="text-xs font-medium bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 p-2 rounded-lg border border-zinc-800 transition flex items-center gap-1.5 shadow-sm" title="Admin Portal">
+            <a href="/login" class="hidden md:flex text-xs font-medium bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 p-2 rounded-lg border border-zinc-800 transition items-center gap-1.5 shadow-sm" title="Admin Portal">
                 <i class="fa-solid fa-lock text-xs"></i>
             </a>
         </div>

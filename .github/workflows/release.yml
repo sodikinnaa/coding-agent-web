@@ -44,21 +44,21 @@ jobs:
 
       - name: Create GitHub Release & Upload Artifacts
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
         with:
+          tag_name: latest
           files: |
             coding_agent_app_linux_amd64
             coding_agent_app_linux_arm64
             coding_agent_app_darwin_amd64
             coding_agent_app_darwin_arm64
             coding_agent_web_linux_amd64.tar.gz
-          name: Release ${{ github.ref_name }}
+          name: Latest Release (Auto Build)
           body: |
-            ## 🎉 Release ${{ github.ref_name }} - AI Kurikulum Koding & AI Web Application
+            ## 🎉 Latest Release - AI Kurikulum Koding & AI Web Application
 
-            ### ⚡ Fast One-Line Installer & Auto-Updater:
+            ### ⚡ Fast One-Line Installer:
             ```bash
-            curl -fsSL https://raw.githubusercontent.com/sodikinnaa/coding-agent-web/main/install.sh | bash
+            curl -fsSL "https://raw.githubusercontent.com/sodikinnaa/coding-agent-web/main/install.sh?v=$(date +%s)" | bash
             ```
           draft: false
           prerelease: false

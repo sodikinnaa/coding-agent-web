@@ -810,6 +810,26 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
         </div>
     </div>
 
+    <!-- Custom Beautiful Alert & Notification Modal -->
+    <div id="custom-alert-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-sm p-6 shadow-2xl text-center space-y-4">
+            <div id="alert-icon-box" class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-2xl mx-auto shadow-lg shadow-emerald-500/10">
+                <i id="alert-modal-icon" class="fa-solid fa-circle-check"></i>
+            </div>
+            
+            <div class="space-y-1.5">
+                <h3 id="alert-modal-title" class="text-base font-bold text-white leading-snug">Notifikasi</h3>
+                <p id="alert-modal-message" class="text-xs text-zinc-300 leading-relaxed">Pesan notifikasi...</p>
+            </div>
+
+            <div class="pt-2">
+                <button id="alert-modal-btn" onclick="closeAlertModal()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs py-2.5 rounded-xl shadow-lg shadow-blue-500/20 transition active:scale-98">
+                    Mengerti
+                </button>
+            </div>
+        </div>
+    </div>
+
     
     <!-- Modal QRIS Payment Mayar -->
     <div id="qris-payment-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
@@ -1279,13 +1299,63 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
             }
         }
 
-        async function selectDynamicPackage(packageID) {
+        function showAlertModal(type, title, message, onConfirm) {
+            const modal = document.getElementById('custom-alert-modal');
+            const iconBox = document.getElementById('alert-icon-box');
+            const icon = document.getElementById('alert-modal-icon');
+            const titleEl = document.getElementById('alert-modal-title');
+            const msgEl = document.getElementById('alert-modal-message');
+            const btn = document.getElementById('alert-modal-btn');
+
+            if (!modal) {
+                alert(title + "\n" + message);
+                return;
+            }
+
+            titleEl.innerText = title;
+            msgEl.innerText = message;
+
+            if (type === 'success') {
+                iconBox.className = "w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-2xl mx-auto shadow-lg shadow-emerald-500/10";
+                icon.className = "fa-solid fa-circle-check";
+                btn.className = "w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold text-xs py-2.5 rounded-xl shadow-lg shadow-emerald-500/20 transition active:scale-98";
+                btn.innerText = "Selesai";
+            } else if (type === 'warning' || type === 'error') {
+                iconBox.className = "w-14 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center text-2xl mx-auto shadow-lg shadow-rose-500/10";
+                icon.className = "fa-solid fa-triangle-exclamation";
+                btn.className = "w-full bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-semibold text-xs py-2.5 rounded-xl shadow-lg shadow-rose-500/20 transition active:scale-98";
+                btn.innerText = "Tutup";
+            } else {
+                iconBox.className = "w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center text-2xl mx-auto shadow-lg shadow-blue-500/10";
+                icon.className = "fa-solid fa-circle-info";
+                btn.className = "w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs py-2.5 rounded-xl shadow-lg shadow-blue-500/20 transition active:scale-98";
+                btn.innerText = "Mengerti";
+            }
+
+            btn.onclick = () => {
+                closeAlertModal();
+                if (typeof onConfirm === 'function') onConfirm();
+            };
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeAlertModal() {
+            const modal = document.getElementById('custom-alert-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        async function createQRIS(packageID) {
+            const stepSelect = document.getElementById('qris-select-step');
+            const stepDisplay = document.getElementById('qris-display-step');
+
             try {
-                const res = await fetch('/api/payment/create-qris', {
+                const res = await fetch('/api/payment/mayar/qris', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({package_id: packageID})
                 });
+
                 const data = await res.json();
                 if (res.ok && data.transaction) {
                     currentTxID = data.transaction.id;
@@ -1298,10 +1368,10 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
                     if (pollTimer) clearInterval(pollTimer);
                     pollTimer = setInterval(checkPaymentStatus, 3000);
                 } else {
-                    alert('Gagal generate QRIS: ' + (data.error || 'Terjadi kesalahan'));
+                    showAlertModal('error', 'Gagal Generate QRIS', data.error || 'Terjadi kesalahan saat memproses pembayaran.');
                 }
             } catch(e) {
-                alert('Gagal terhubung ke server pembayaran.');
+                showAlertModal('error', 'Gagal Terhubung', 'Gagal terhubung ke server pembayaran.');
             }
         }
 
@@ -1312,14 +1382,13 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
                 const data = await res.json();
                 if (res.ok && data.transaction && data.transaction.status === 'paid') {
                     clearInterval(pollTimer);
-                    alert('Pembayaran Sukses! Paket kredit harian kamu telah aktif!');
+                    showAlertModal('success', 'Pembayaran Sukses! 🎉', 'Paket kredit harian kamu telah aktif secara otomatis! Selamat menggunakan AI Kurikulum.');
                     closeQRISModal();
                     checkAuth();
                 }
             } catch(e) {}
         }
 
-        
         async function cancelTxHistory(txID) {
             if (!confirm('Apakah Anda yakin ingin membatalkan transaksi pending ini?')) return;
             try {
@@ -1332,10 +1401,10 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
                 if (res.ok && data.success) {
                     loadUserTransactions();
                 } else {
-                    alert('Gagal membatalkan transaksi: ' + (data.error || 'Terjadi kesalahan'));
+                    showAlertModal('error', 'Gagal Membatalkan', data.error || 'Terjadi kesalahan saat membatalkan transaksi.');
                 }
             } catch(e) {
-                alert('Gagal terhubung ke server.');
+                showAlertModal('error', 'Gagal Terhubung', 'Gagal terhubung ke server.');
             }
         }
 
@@ -1351,10 +1420,10 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
                 if (res.ok && data.success) {
                     loadUserTransactions();
                 } else {
-                    alert('Gagal menghapus riwayat: ' + (data.error || 'Terjadi kesalahan'));
+                    showAlertModal('error', 'Gagal Menghapus', data.error || 'Terjadi kesalahan saat menghapus riwayat.');
                 }
             } catch(e) {
-                alert('Gagal terhubung ke server.');
+                showAlertModal('error', 'Gagal Terhubung', 'Gagal terhubung ke server.');
             }
         }
 
@@ -1921,12 +1990,12 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
                     if (container) container.classList.remove('hidden');
                     renderQuestion();
                 } else {
-                    alert('Gagal memuat kuis: ' + (data.error || 'Terjadi kesalahan pada server kuis.'));
+                    showAlertModal('error', 'Gagal Memuat Kuis', data.error || 'Terjadi kesalahan pada server kuis.');
                 }
             } catch (err) {
                 console.error("Quiz Generate Error:", err);
                 if (loading) loading.classList.add('hidden');
-                alert('Gagal terhubung ke server kuis. Silakan coba beberapa saat lagi.');
+                showAlertModal('error', 'Gagal Terhubung', 'Gagal terhubung ke server kuis. Silakan coba beberapa saat lagi.');
             }
         }
 
@@ -2018,10 +2087,10 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
                     }
                     renderQuestion();
                 } else {
-                    alert('Gagal memverifikasi jawaban: ' + (data.error || 'Terjadi kesalahan'));
+                    showAlertModal('error', 'Gagal Memverifikasi', data.error || 'Terjadi kesalahan saat memverifikasi jawaban.');
                 }
             } catch(e) {
-                alert('Gagal terhubung ke server verifikasi kuis.');
+                showAlertModal('error', 'Gagal Terhubung', 'Gagal terhubung ke server verifikasi kuis.');
             }
         }
 
@@ -2322,6 +2391,8 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
         window.generateCaptcha = generateCaptcha;
         window.sendQuickPrompt = sendQuickPrompt;
         window.copyMessageText = copyMessageText;
+        window.showAlertModal = showAlertModal;
+        window.closeAlertModal = closeAlertModal;
         window.logoutUser = logoutUser;
     </script>
 </body>

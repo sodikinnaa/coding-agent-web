@@ -2123,7 +2123,6 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
         window.closeProfileModal = closeProfileModal;
         window.switchProfTab = switchProfTab;
         window.openPackageModal = openPackageModal;
-        window.closePackageModal = closePackageModal;
         window.startNewChatSession = startNewChatSession;
         window.previewDoc = previewDoc;
         window.closePreviewModal = closePreviewModal;

@@ -1,0 +1,8 @@
+{
+  "admin_password": "your_admin_password_here",
+  "base_url": "https://example.com/api/v1",
+  "api_key": "your_api_key_here",
+  "model": "gemini-3.6-flash-high",
+  "system_prompt": "Kamu adalah Asisten AI Kurikulum Koding & AI Indonesia (SD-SMA).",
+  "mayar_api_key": "your_mayar_api_key_here"
+}

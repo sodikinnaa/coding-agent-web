@@ -1,0 +1,32 @@
+# Environment & Secrets
+.env
+*.env
+config.json
+
+# SQLite Databases & Data Files
+data.db
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# Executables & Binaries
+coding_agent_app
+coding_agent_web
+bin/
+build/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Temporary & Workspace Files
+scratch/
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.tmp

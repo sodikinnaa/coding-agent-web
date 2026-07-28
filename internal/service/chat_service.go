@@ -55,8 +55,8 @@ var (
 
 func CreateQuizSession(userID int64, categoryID int64, grade string) (string, []ClientQuizQuestion, error) {
 	questions, err := GenerateQuizByCategory(categoryID, grade)
-	if err != nil {
-		return "", nil, err
+	if err != nil || len(questions) == 0 {
+		questions = getFallbackQuiz(grade)
 	}
 
 	sessionID := fmt.Sprintf("qz_%d_%d", time.Now().UnixNano(), userID)
@@ -338,7 +338,7 @@ PENTING: Balas HANYA dengan JSON valid tanpa markdown formatting dengan format a
 	client := &http.Client{Timeout: 120 * time.Second}
 	resp, err := client.Do(httpReq)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to reach AI API: %v", err)
+		return getFallbackQuiz(grade), nil
 	}
 	defer resp.Body.Close()
 

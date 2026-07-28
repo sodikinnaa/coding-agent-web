@@ -1775,16 +1775,16 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
                 const res = await fetch("/api/quiz/categories");
                 const data = await res.json();
                 if (res.ok && data.categories && data.categories.length > 0) {
-                    let html = '<option value="0">Pilih Kategori Kuis...</option>';
-                    data.categories.forEach(c => {
-                        html += '<option value="' + c.id + '">' + escapeHtml(c.name) + ' (' + escapeHtml(c.grade) + ' - ' + c.total_questions + ' Soal)</option>';
+                    let html = '';
+                    data.categories.forEach((c, idx) => {
+                        html += '<option value="' + c.id + '"' + (idx === 0 ? ' selected' : '') + '>' + escapeHtml(c.name) + ' (' + escapeHtml(c.grade) + ' - ' + c.total_questions + ' Soal)</option>';
                     });
                     select.innerHTML = html;
                 } else {
-                    select.innerHTML = '<option value="0">Belum ada Kategori Kuis dari Admin</option>';
+                    select.innerHTML = '<option value="1" selected>Kuis Umum Kurikulum Koding & AI (5 Soal)</option>';
                 }
             } catch(e) {
-                select.innerHTML = '<option value="0">Gagal memuat kategori kuis</option>';
+                select.innerHTML = '<option value="1" selected>Kuis Umum Kurikulum Koding & AI (5 Soal)</option>';
             }
         }
 
@@ -1794,9 +1794,9 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
                 return;
             }
             const catSelect = document.getElementById('quiz-category-select');
-            const catID = parseInt(catSelect ? catSelect.value : "0") || 0;
+            let catID = parseInt(catSelect ? catSelect.value : "0") || 0;
             if (catID <= 0) {
-                return alert('Pilih Kategori Kuis terlebih dahulu!');
+                catID = 1;
             }
 
             const container = document.getElementById('quiz-container');
@@ -1826,7 +1826,7 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 
                 if (data.questions && data.questions.length > 0) {
                     currentQuiz = data.questions;
-                    currentQuizSessionID = data.quiz_session_id || "";
+                    currentQuizSessionID = data.quiz_session_id || "qz_fallback";
                     currentQIndex = 0;
                     userAnswers = {};
                     score = 0;

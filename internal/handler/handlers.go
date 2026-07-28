@@ -462,74 +462,122 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
         </aside>
 
         <!-- VIEW 1: CHATBOT INTERFACE -->
-        <main id="chat-view" class="flex-1 flex flex-col bg-zinc-950 relative">
+        <main id="chat-view" class="flex-1 flex flex-col bg-zinc-950 relative overflow-hidden">
+            <!-- Message Stream Area (Centered Container for Comfortable Desktop Reading) -->
             <div id="chat-box" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 assistant-ui-thread">
-                <div class="flex items-start gap-3">
-                    <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xs shrink-0 shadow-md">
-                        <i class="fa-solid fa-sparkles"></i>
-                    </div>
-                    <div class="aui-msg-assistant p-4 text-sm text-zinc-200 leading-relaxed shadow-sm space-y-2">
-                        <p>Halo! Saya Asisten AI Kurikulum Koding & AI SD-SMA.</p>
-                        <div class="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 flex items-center gap-2">
-                            <i class="fa-solid fa-wand-magic-sparkles text-blue-400"></i>
-                            <span>Didukung oleh <strong>Direct PDF Vision AI</strong> (Analisis Berkas PDF Visual secara Presisi).</span>
+                <div class="max-w-3xl md:max-w-4xl mx-auto w-full space-y-6 pt-2">
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xs shrink-0 shadow-md">
+                            <i class="fa-solid fa-sparkles"></i>
                         </div>
-                        <p class="text-xs text-zinc-400 pt-1">Silakan tanyakan materi kurikulum, atau beralih ke <strong>Kuis Interaktif</strong> di tombol atas!</p>
+                        <div class="aui-msg-assistant p-5 text-sm text-zinc-200 leading-relaxed shadow-md space-y-3 bg-zinc-900/90 border border-zinc-800 rounded-2xl flex-1">
+                            <h3 class="font-bold text-white text-base flex items-center gap-2">
+                                <span>Selamat Datang di AI Kurikulum Koding & AI!</span>
+                                <span class="px-2 py-0.5 text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full font-normal">v2.0 Vision Engine</span>
+                            </h3>
+                            <p class="text-zinc-300">Saya siap membantu pertanyaan seputar Kurikulum Koding & AI untuk jenjang SD, SMP, hingga SMA berdasarkan buku panduan resmi.</p>
+                            
+                            <div class="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 flex items-center gap-2.5">
+                                <i class="fa-solid fa-wand-magic-sparkles text-blue-400 text-sm shrink-0"></i>
+                                <span><strong>Direct PDF Vision AI</strong> — analisis materi buku koding secara langsung dan presisi!</span>
+                            </div>
+
+                            <!-- Quick Suggestion Cards -->
+                            <div class="pt-2">
+                                <p class="text-xs font-semibold text-zinc-400 mb-2.5">Coba tanyakan saran berikut:</p>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    <button onclick="sendQuickPrompt('Jelaskan konsep Algoritma dan Pemrograman untuk siswa SD Kelas 5')" class="p-3 rounded-xl bg-zinc-950 hover:bg-zinc-850 border border-zinc-800/90 text-left text-xs text-zinc-300 hover:text-white transition group flex items-start gap-2 shadow-sm">
+                                        <i class="fa-solid fa-code text-blue-400 mt-0.5 text-xs shrink-0"></i>
+                                        <div class="min-w-0">
+                                            <div class="font-semibold text-zinc-200 group-hover:text-blue-300">Algoritma SD Kelas 5</div>
+                                            <div class="text-[11px] text-zinc-500 truncate">Jelaskan konsep algoritma dasar...</div>
+                                        </div>
+                                    </button>
+
+                                    <button onclick="sendQuickPrompt('Bagaimana cara membuat game sederhana dengan Scratch di SD?')" class="p-3 rounded-xl bg-zinc-950 hover:bg-zinc-850 border border-zinc-800/90 text-left text-xs text-zinc-300 hover:text-white transition group flex items-start gap-2 shadow-sm">
+                                        <i class="fa-solid fa-gamepad text-indigo-400 mt-0.5 text-xs shrink-0"></i>
+                                        <div class="min-w-0">
+                                            <div class="font-semibold text-zinc-200 group-hover:text-indigo-300">Scratch Game SD</div>
+                                            <div class="text-[11px] text-zinc-500 truncate">Membuat game visual Scratch...</div>
+                                        </div>
+                                    </button>
+
+                                    <button onclick="sendQuickPrompt('Apa saja materi Kurikulum Koding & AI untuk jenjang SMP dan SMA?')" class="p-3 rounded-xl bg-zinc-950 hover:bg-zinc-850 border border-zinc-800/90 text-left text-xs text-zinc-300 hover:text-white transition group flex items-start gap-2 shadow-sm">
+                                        <i class="fa-solid fa-graduation-cap text-purple-400 mt-0.5 text-xs shrink-0"></i>
+                                        <div class="min-w-0">
+                                            <div class="font-semibold text-zinc-200 group-hover:text-purple-300">Materi SMP & SMA</div>
+                                            <div class="text-[11px] text-zinc-500 truncate">Silabus koding & AI jenjang atas...</div>
+                                        </div>
+                                    </button>
+
+                                    <button onclick="sendQuickPrompt('Berikan latihan soal koding Python sederhana untuk siswa SMA')" class="p-3 rounded-xl bg-zinc-950 hover:bg-zinc-850 border border-zinc-800/90 text-left text-xs text-zinc-300 hover:text-white transition group flex items-start gap-2 shadow-sm">
+                                        <i class="fa-brands fa-python text-amber-400 mt-0.5 text-xs shrink-0"></i>
+                                        <div class="min-w-0">
+                                            <div class="font-semibold text-zinc-200 group-hover:text-amber-300">Latihan Python SMA</div>
+                                            <div class="text-[11px] text-zinc-500 truncate">Contoh soal & logika Python...</div>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="p-4 bg-gradient-to-t from-zinc-950 via-zinc-950 to-transparent">
-                <!-- Locked Chat Overlay for Guest -->
-                <div id="chat-guest-lock" class="hidden p-4 bg-zinc-900/90 border border-zinc-800 backdrop-blur-md rounded-2xl text-center space-y-2.5 shadow-2xl">
-                    <div class="flex items-center justify-center gap-2 text-amber-400 font-bold text-xs">
-                        <i class="fa-solid fa-lock text-sm"></i>
-                        <span>Obrolan AI Terkunci</span>
+            <!-- Bottom Floating Input Bar -->
+            <div class="p-3 md:p-4 bg-gradient-to-t from-zinc-950 via-zinc-950 to-transparent shrink-0">
+                <div class="max-w-3xl md:max-w-4xl mx-auto w-full space-y-2">
+                    <!-- Locked Chat Overlay for Guest -->
+                    <div id="chat-guest-lock" class="hidden p-4 bg-zinc-900/90 border border-zinc-800 backdrop-blur-md rounded-2xl text-center space-y-2.5 shadow-2xl">
+                        <div class="flex items-center justify-center gap-2 text-amber-400 font-bold text-xs">
+                            <i class="fa-solid fa-lock text-sm"></i>
+                            <span>Obrolan AI Terkunci</span>
+                        </div>
+                        <p class="text-xs text-zinc-300">Harap masuk atau daftar akun terlebih dahulu untuk melakukan obrolan dengan AI Kurikulum.</p>
+                        <div class="flex justify-center gap-2.5 pt-1">
+                            <button onclick="openAuthModal('login')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition shadow-md flex items-center gap-1.5">
+                                <i class="fa-solid fa-right-to-bracket text-[10px]"></i> Masuk Sekarang
+                            </button>
+                            <button onclick="openAuthModal('register')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold px-4 py-2 rounded-xl border border-zinc-700 transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-user-plus text-[10px]"></i> Daftar Akun
+                            </button>
+                        </div>
                     </div>
-                    <p class="text-xs text-zinc-300">Harap masuk atau daftar akun terlebih dahulu untuk melakukan obrolan dengan AI Kurikulum.</p>
-                    <div class="flex justify-center gap-2.5 pt-1">
-                        <button onclick="openAuthModal('login')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition shadow-md flex items-center gap-1.5">
-                            <i class="fa-solid fa-right-to-bracket text-[10px]"></i> Masuk Sekarang
-                        </button>
-                        <button onclick="openAuthModal('register')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold px-4 py-2 rounded-xl border border-zinc-700 transition flex items-center gap-1.5">
-                            <i class="fa-solid fa-user-plus text-[10px]"></i> Daftar Akun
-                        </button>
-                    </div>
-                </div>
 
-                <!-- Locked Chat Overlay for Limit Reached (0 Credit) -->
-                <div id="chat-limit-lock" class="hidden p-5 bg-gradient-to-r from-amber-950/40 via-zinc-900 to-amber-950/40 border border-amber-500/40 backdrop-blur-md rounded-2xl text-center space-y-3 shadow-2xl">
-                    <div class="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center text-lg mx-auto shadow-md">
-                        <i class="fa-solid fa-bolt text-amber-300"></i>
+                    <!-- Locked Chat Overlay for Limit Reached (0 Credit) -->
+                    <div id="chat-limit-lock" class="hidden p-5 bg-gradient-to-r from-amber-950/40 via-zinc-900 to-amber-950/40 border border-amber-500/40 backdrop-blur-md rounded-2xl text-center space-y-3 shadow-2xl">
+                        <div class="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center text-lg mx-auto shadow-md">
+                            <i class="fa-solid fa-bolt text-amber-300"></i>
+                        </div>
+                        <div class="space-y-1">
+                            <h3 class="text-sm font-bold text-zinc-100 flex items-center justify-center gap-1.5">
+                                <span>Kuota Chat Harian Anda Telah Habis!</span>
+                            </h3>
+                            <p class="text-xs text-zinc-300 max-w-md mx-auto leading-relaxed">
+                                Batas kredit harian paket Anda telah tercapai (0 chat tersisa hari ini). Silakan beli atau upgrade paket langganan via QRIS instant untuk melanjutkan obrolan tanpa batas.
+                            </p>
+                        </div>
+                        <div class="flex justify-center gap-3 pt-1">
+                            <button onclick="openPackageModal()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition shadow-lg shadow-emerald-500/20 flex items-center gap-2 active:scale-95">
+                                <i class="fa-solid fa-qrcode"></i> Beli / Upgrade Paket QRIS
+                            </button>
+                            <button onclick="openProfileModal(); switchProfTab('history');" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold px-4 py-2.5 rounded-xl border border-zinc-700 transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-receipt text-xs"></i> Cek Pembayaran
+                            </button>
+                        </div>
                     </div>
-                    <div class="space-y-1">
-                        <h3 class="text-sm font-bold text-zinc-100 flex items-center justify-center gap-1.5">
-                            <span>Kuota Chat Harian Anda Telah Habis!</span>
-                        </h3>
-                        <p class="text-xs text-zinc-300 max-w-md mx-auto leading-relaxed">
-                            Batas kredit harian paket Anda telah tercapai (0 chat tersisa hari ini). Silakan beli atau upgrade paket langganan via QRIS instant untuk melanjutkan obrolan tanpa batas.
-                        </p>
-                    </div>
-                    <div class="flex justify-center gap-3 pt-1">
-                        <button onclick="openPackageModal()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition shadow-lg shadow-emerald-500/20 flex items-center gap-2 active:scale-95">
-                            <i class="fa-solid fa-qrcode"></i> Beli / Upgrade Paket QRIS
-                        </button>
-                        <button onclick="openProfileModal(); switchProfTab('history');" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold px-4 py-2.5 rounded-xl border border-zinc-700 transition flex items-center gap-1.5">
-                            <i class="fa-solid fa-receipt text-xs"></i> Cek Pembayaran
-                        </button>
-                    </div>
-                </div>
 
-                <div id="chat-input-wrapper" class="assistant-ui-thread">
-                    <form id="chat-form" class="relative flex items-center bg-zinc-900 border border-zinc-800 focus-within:border-zinc-700 rounded-2xl shadow-xl transition-all p-1.5">
-                        <textarea id="user-input" rows="1" placeholder="Tanyakan seputar kurikulum koding SD-SMA..." class="w-full bg-transparent text-zinc-100 placeholder-zinc-500 px-4 py-2.5 text-sm focus:outline-none resize-none max-h-32"></textarea>
-                        <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white w-9 h-9 rounded-xl flex items-center justify-center transition shrink-0 ml-2 shadow-md">
-                            <i class="fa-solid fa-arrow-up text-sm"></i>
-                        </button>
-                    </form>
-                    <div class="flex items-center justify-between text-[11px] text-zinc-500 mt-2 px-1">
-                        <span>Powered by Assistant-UI & Go RAG Engine</span>
-                        <span id="chat-credit-indicator" class="font-medium text-blue-400"></span>
+                    <div id="chat-input-wrapper" class="assistant-ui-thread">
+                        <form id="chat-form" class="relative flex items-center bg-zinc-900/90 border border-zinc-800 focus-within:border-blue-500/60 rounded-2xl shadow-xl transition-all p-1.5 focus-within:ring-1 focus-within:ring-blue-500/30">
+                            <textarea id="user-input" rows="1" placeholder="Tanyakan seputar kurikulum koding SD-SMA (Shift+Enter untuk baris baru)..." class="w-full bg-transparent text-zinc-100 placeholder-zinc-500 px-4 py-2.5 text-sm focus:outline-none resize-none max-h-32"></textarea>
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white w-9 h-9 rounded-xl flex items-center justify-center transition shrink-0 ml-2 shadow-md">
+                                <i class="fa-solid fa-arrow-up text-sm"></i>
+                            </button>
+                        </form>
+                        <div class="flex items-center justify-between text-[11px] text-zinc-500 mt-2 px-1">
+                            <span>Powered by Assistant-UI & Go RAG Engine</span>
+                            <span id="chat-credit-indicator" class="font-medium text-blue-400"></span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2183,19 +2231,48 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
             }
         });
 
+        function sendQuickPrompt(prompt) {
+            const input = document.getElementById('user-input');
+            if (input) {
+                input.value = prompt;
+                input.style.height = 'auto';
+                input.style.height = (input.scrollHeight) + 'px';
+                chatForm.dispatchEvent(new Event('submit'));
+            }
+        }
+
+        function copyMessageText(btn) {
+            const raw = decodeURIComponent(btn.getAttribute('data-text') || '');
+            navigator.clipboard.writeText(raw).then(() => {
+                const original = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check text-emerald-400 text-[10px]"></i> <span class="text-emerald-400 font-semibold">Tersalin!</span>';
+                setTimeout(() => { btn.innerHTML = original; }, 2000);
+            });
+        }
+
         function appendMessage(role, text) {
             const div = document.createElement('div');
-            div.className = 'flex items-start gap-3 ' + (role === 'user' ? 'flex-row-reverse' : '');
+            div.className = 'flex items-start gap-3 w-full max-w-3xl md:max-w-4xl mx-auto ' + (role === 'user' ? 'justify-end' : 'justify-start');
 
             const avatar = role === 'user' 
-                ? '<div class="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-300 text-xs shrink-0"><i class="fa-solid fa-user"></i></div>'
+                ? '<div class="w-8 h-8 rounded-full bg-gradient-to-tr from-zinc-800 to-zinc-700 border border-zinc-700 flex items-center justify-center text-zinc-300 text-xs shrink-0 shadow-sm"><i class="fa-solid fa-user"></i></div>'
                 : '<div class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xs shrink-0 shadow-md"><i class="fa-solid fa-sparkles"></i></div>';
 
             const contentHtml = role === 'assistant' ? marked.parse(text) : escapeHtml(text);
-            const msgClass = role === 'user' ? 'aui-msg-user text-zinc-100' : 'aui-msg-assistant text-zinc-200 markdown-body';
+            const msgClass = role === 'user' ? 'aui-msg-user text-zinc-100 bg-blue-600/20 border border-blue-500/30' : 'aui-msg-assistant text-zinc-200 markdown-body bg-zinc-900/90 border border-zinc-800';
 
-            div.innerHTML = avatar +
-                '<div class="' + msgClass + ' p-4 text-sm leading-relaxed max-w-xl shadow-sm">' + contentHtml + '</div>';
+            const copyBtn = role === 'assistant' 
+                ? '<div class="mt-2.5 pt-2 border-t border-zinc-800/80 flex items-center justify-between text-[11px] text-zinc-500">' +
+                    '<span>AI Assistant • Vision RAG Engine</span>' +
+                    '<button onclick="copyMessageText(this)" data-text="' + encodeURIComponent(text) + '" class="hover:text-zinc-300 transition flex items-center gap-1 px-2 py-0.5 rounded bg-zinc-950/60 border border-zinc-800/60">' +
+                        '<i class="fa-regular fa-copy text-[10px]"></i> <span>Salin</span>' +
+                    '</button>' +
+                  '</div>'
+                : '';
+
+            div.innerHTML = (role === 'user' ? '' : avatar) +
+                '<div class="' + msgClass + ' p-4 rounded-2xl text-sm leading-relaxed max-w-2xl shadow-sm space-y-2">' + contentHtml + copyBtn + '</div>' +
+                (role === 'user' ? avatar : '');
 
             chatBox.appendChild(div);
             chatBox.scrollTop = chatBox.scrollHeight;
@@ -2205,9 +2282,9 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
             const id = 'loading-' + Date.now();
             const div = document.createElement('div');
             div.id = id;
-            div.className = 'flex items-start gap-3';
+            div.className = 'flex items-start gap-3 w-full max-w-3xl md:max-w-4xl mx-auto';
             div.innerHTML = '<div class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xs shrink-0 shadow-md"><i class="fa-solid fa-sparkles"></i></div>' +
-                '<div class="aui-msg-assistant p-4 text-sm text-zinc-400 flex items-center space-x-2">' +
+                '<div class="aui-msg-assistant p-4 text-sm text-zinc-400 flex items-center space-x-2 bg-zinc-900/90 border border-zinc-800 rounded-2xl">' +
                 '<i class="fa-solid fa-spinner animate-spin text-blue-400"></i>' +
                 '<span>Sedang mencari referensi halaman buku...</span></div>';
             chatBox.appendChild(div);
@@ -2243,6 +2320,8 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
         window.closePreviewModal = closePreviewModal;
         window.toggleMobileSidebar = toggleMobileSidebar;
         window.generateCaptcha = generateCaptcha;
+        window.sendQuickPrompt = sendQuickPrompt;
+        window.copyMessageText = copyMessageText;
         window.logoutUser = logoutUser;
     </script>
 </body>

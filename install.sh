@@ -8,12 +8,54 @@ if [ ! -d "$INSTALL_DIR" ]; then
     fi
 fi
 
-# Set fast Go proxy for ultra-fast dependency downloads
+# Set fast Go proxy for ultra-fast dependency downloads (fallback mode)
 export GOPROXY="https://proxy.golang.org,direct"
 
 echo "======================================================"
 echo "  AI Kurikulum Koding & AI - Installer & Updater"
 echo "======================================================"
+
+get_binary() {
+    OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+    ARCH=$(uname -m)
+    BINARY_NAME=""
+
+    if [ "$OS" = "linux" ]; then
+        if [ "$ARCH" = "x86_64" ]; then
+            BINARY_NAME="coding_agent_app_linux_amd64"
+        elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
+            BINARY_NAME="coding_agent_app_linux_arm64"
+        fi
+    elif [ "$OS" = "darwin" ]; then
+        if [ "$ARCH" = "x86_64" ]; then
+            BINARY_NAME="coding_agent_app_darwin_amd64"
+        elif [ "$ARCH" = "arm64" ]; then
+            BINARY_NAME="coding_agent_app_darwin_arm64"
+        fi
+    fi
+
+    if [ -n "$BINARY_NAME" ]; then
+        RELEASE_URL="https://github.com/sodikinnaa/coding-agent-web/releases/latest/download/${BINARY_NAME}"
+        echo "📥 Mengunduh biner rilis pre-compiled CI/CD (${BINARY_NAME})..."
+        if curl -fsSL "$RELEASE_URL" -o coding_agent_app 2>/dev/null; then
+            chmod +x coding_agent_app
+            echo "✅ Biner pre-compiled CI/CD berhasil diunduh!"
+            return 0
+        else
+            echo "⚠️  Biner pre-compiled belum tersedia di Release terbaru. Mencoba opsi kompilasi lokal..."
+        fi
+    fi
+
+    if command -v go &> /dev/null; then
+        echo "⚙️  Mengompilasi ulang biner aplikasi Go dari sumber..."
+        go build -ldflags="-s -w" -o coding_agent_app main.go
+        chmod +x coding_agent_app
+        return 0
+    else
+        echo "❌ Biner rilis CI/CD tidak dapat diunduh dan compiler Go tidak ditemukan di server!"
+        exit 1
+    fi
+}
 
 # Check if application is already installed on the server
 if [ -d "$INSTALL_DIR/.git" ] || [ -f "$INSTALL_DIR/coding_agent_app" ]; then
@@ -23,20 +65,14 @@ if [ -d "$INSTALL_DIR/.git" ] || [ -f "$INSTALL_DIR/coding_agent_app" ]; then
 
     cd "$INSTALL_DIR"
 
-    echo "[1/4] Mengambil pembaruan kode terbaru dari GitHub (git pull)..."
-    git fetch origin main
-    git reset --hard origin/main
+    echo "[1/3] Mengambil pembaruan kode terbaru dari GitHub (git pull)..."
+    git fetch origin main || true
+    git reset --hard origin/main || true
 
-    echo "[2/4] Memeriksa compiler Go..."
-    if ! command -v go &> /dev/null; then
-        echo "❌ Compiler Go tidak ditemukan! Harap install Go 1.21+ terlebih dahulu."
-        exit 1
-    fi
+    echo "[2/3] Memperbarui biner aplikasi..."
+    get_binary
 
-    echo "[3/4] Mengompilasi ulang biner aplikasi Go..."
-    go build -ldflags="-s -w" -o coding_agent_app main.go
-
-    echo "[4/4] Merestart service systemd (coding-knowledge.service)..."
+    echo "[3/3] Merestart service systemd (coding-knowledge.service)..."
     if command -v systemctl &> /dev/null; then
         sudo systemctl restart coding-knowledge.service || true
     fi
@@ -64,13 +100,8 @@ git clone --depth 1 https://github.com/sodikinnaa/coding-agent-web.git "$INSTALL
 
 cd "$INSTALL_DIR"
 
-echo "[3/4] Mengompilasi biner aplikasi Go..."
-if ! command -v go &> /dev/null; then
-    echo "❌ Compiler Go tidak ditemukan! Harap install Go 1.21+ terlebih dahulu."
-    exit 1
-fi
-
-go build -ldflags="-s -w" -o coding_agent_app main.go
+echo "[3/4] Menyiapkan biner aplikasi Go..."
+get_binary
 
 echo "[4/4] Memasang service systemd..."
 sudo tee /etc/systemd/system/coding-knowledge.service > /dev/null <<EOF

@@ -172,7 +172,7 @@ func getRelevantDocParts(prompt string) []model.ContentPart {
 			filenameLower := strings.ToLower(doc.Filename)
 			if strings.Contains(filenameLower, "outline") || strings.Contains(filenameLower, "cp koding") {
 				selectedFiles = append(selectedFiles, doc.Filename)
-				if len(selectedFiles) >= 2 {
+				if len(selectedFiles) >= 1 {
 					break
 				}
 			}
@@ -181,6 +181,11 @@ func getRelevantDocParts(prompt string) []model.ContentPart {
 	if len(selectedFiles) == 0 && len(docList) > 0 {
 		// Pick smallest document
 		selectedFiles = append(selectedFiles, "BUKU AI Outline Buku Coding dan AI SD_MI.pdf")
+	}
+
+	// Limit selectedFiles to maximum 1 document to avoid HTTP payload bloat and slow network delays
+	if len(selectedFiles) > 1 {
+		selectedFiles = selectedFiles[:1]
 	}
 
 	var parts []model.ContentPart
@@ -309,12 +314,9 @@ PENTING: Balas HANYA dengan JSON valid tanpa markdown formatting dengan format a
   }
 ]`, totalQuestions, categoryName, grade)
 
-	docParts := getRelevantDocParts(grade + " " + categoryName)
-
 	userContentParts := []model.ContentPart{
 		{Type: "text", Text: promptText},
 	}
-	userContentParts = append(userContentParts, docParts...)
 
 	messages := []model.ChatMessage{
 		{Role: "system", Content: "Kamu adalah generator kuis edukasi koding & AI. Keluarkan output HANYA berupa JSON valid sesuai instruksi."},
@@ -335,7 +337,7 @@ PENTING: Balas HANYA dengan JSON valid tanpa markdown formatting dengan format a
 		httpReq.Header.Set("Authorization", "Bearer "+currCfg.APIKey)
 	}
 
-	client := &http.Client{Timeout: 120 * time.Second}
+	client := &http.Client{Timeout: 5 * time.Second}
 	resp, err := client.Do(httpReq)
 	if err != nil {
 		return getFallbackQuiz(grade), nil

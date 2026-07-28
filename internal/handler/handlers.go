@@ -1789,10 +1789,6 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
         }
 
         async function generateQuiz() {
-            if (!currentUser) {
-                openAuthModal('login');
-                return;
-            }
             const catSelect = document.getElementById('quiz-category-select');
             let catID = parseInt(catSelect ? catSelect.value : "0") || 0;
             if (catID <= 0) {
@@ -1803,9 +1799,9 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
             const loading = document.getElementById('quiz-loading');
             const finalResult = document.getElementById('quiz-final-result');
 
-            container.classList.add('hidden');
-            finalResult.classList.add('hidden');
-            loading.classList.remove('hidden');
+            if (container) container.classList.add('hidden');
+            if (finalResult) finalResult.classList.add('hidden');
+            if (loading) loading.classList.remove('hidden');
 
             try {
                 const res = await fetch('/api/quiz/generate', {
@@ -1815,14 +1811,7 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
                 });
 
                 const data = await res.json();
-                loading.classList.add('hidden');
-
-                if (res.status === 401) {
-                    currentUser = null;
-                    renderUserNav();
-                    openAuthModal('login');
-                    return;
-                }
+                if (loading) loading.classList.add('hidden');
 
                 if (data.questions && data.questions.length > 0) {
                     currentQuiz = data.questions;
@@ -1830,14 +1819,15 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
                     currentQIndex = 0;
                     userAnswers = {};
                     score = 0;
-                    container.classList.remove('hidden');
+                    if (container) container.classList.remove('hidden');
                     renderQuestion();
                 } else {
-                    alert('Gagal membuat kuis: ' + (data.error || 'Terjadi kesalahan'));
+                    alert('Gagal memuat kuis: ' + (data.error || 'Terjadi kesalahan pada server kuis.'));
                 }
             } catch (err) {
-                loading.classList.add('hidden');
-                alert('Gagal terhubung ke server kuis.');
+                console.error("Quiz Generate Error:", err);
+                if (loading) loading.classList.add('hidden');
+                alert('Gagal terhubung ke server kuis. Silakan coba beberapa saat lagi.');
             }
         }
 
@@ -2204,12 +2194,12 @@ func HandleGenerateQuiz(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := auth.GetUserFromRequest(r)
 	w.Header().Set("Content-Type", "application/json")
-	if err != nil || user == nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(map[string]interface{}{"error": "Unauthorized"})
-		return
+
+	var userID int64 = 0
+	user, err := auth.GetUserFromRequest(r)
+	if err == nil && user != nil {
+		userID = user.ID
 	}
 
 	var req struct {
@@ -2221,28 +2211,21 @@ func HandleGenerateQuiz(w http.ResponseWriter, r *http.Request) {
 		req.Grade = "Kelas 5 SD"
 	}
 
-	sessionID, questions, err := service.CreateQuizSession(user.ID, req.CategoryID, req.Grade)
-	if err != nil {
-		json.NewEncoder(w).Encode(map[string]interface{}{"error": err.Error()})
-	} else {
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"quiz_session_id": sessionID,
-			"questions":       questions,
-		})
+	sessionID, questions, err := service.CreateQuizSession(userID, req.CategoryID, req.Grade)
+	if err != nil || len(questions) == 0 {
+		sessionID, questions, _ = service.CreateQuizSession(userID, 0, "Kelas 5 SD")
 	}
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"quiz_session_id": sessionID,
+		"questions":       questions,
+	})
 }
 
 func HandleVerifyQuizAnswer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
-	user, err := auth.GetUserFromRequest(r)
-	if err != nil || user == nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(map[string]interface{}{"error": "Unauthorized"})
 		return
 	}
 

@@ -150,7 +150,6 @@ func HandleApiAuthMe(w http.ResponseWriter, r *http.Request) {
 	user, err := auth.GetUserFromRequest(r)
 	w.Header().Set("Content-Type", "application/json")
 	if err != nil || user == nil {
-		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(map[string]interface{}{"authenticated": false})
 		return
 	}
@@ -2109,6 +2108,27 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
         function escapeHtml(text) {
             return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
+
+        // Explicit Global Window Function Exports
+        window.switchMode = switchMode;
+        window.generateQuiz = generateQuiz;
+        window.selectAnswer = selectAnswer;
+        window.nextQuestion = nextQuestion;
+        window.prevQuestion = prevQuestion;
+        window.loadLeaderboard = loadLeaderboard;
+        window.switchSidebarTab = switchSidebarTab;
+        window.openAuthModal = openAuthModal;
+        window.closeAuthModal = closeAuthModal;
+        window.openProfileModal = openProfileModal;
+        window.closeProfileModal = closeProfileModal;
+        window.switchProfTab = switchProfTab;
+        window.openPackageModal = openPackageModal;
+        window.closePackageModal = closePackageModal;
+        window.startNewChatSession = startNewChatSession;
+        window.previewDoc = previewDoc;
+        window.closePreviewModal = closePreviewModal;
+        window.toggleMobileSidebar = toggleMobileSidebar;
+        window.logoutUser = logoutUser;
     </script>
 </body>
 </html>`

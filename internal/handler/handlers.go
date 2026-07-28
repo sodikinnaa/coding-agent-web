@@ -2128,6 +2128,16 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
             const text = userInput.value.trim();
             if (!text) return;
 
+            const submitBtn = chatForm.querySelector('button[type="submit"]');
+
+            // Disable input and send button during sending process
+            userInput.disabled = true;
+            userInput.classList.add('opacity-50', 'cursor-not-allowed');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+
             appendMessage('user', text);
             userInput.value = '';
             userInput.style.height = 'auto';
@@ -2161,6 +2171,15 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
             } catch (err) {
                 removeLoading(loadingId);
                 appendMessage('assistant', 'Terjadi masalah jaringan ke server.');
+            } finally {
+                // Re-enable input & send button when sending process completes
+                userInput.disabled = false;
+                userInput.classList.remove('opacity-50', 'cursor-not-allowed');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+                userInput.focus();
             }
         });
 

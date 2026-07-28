@@ -724,6 +724,20 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
                     </div>
                 </div>
 
+                <!-- CAPTCHA Field for Register -->
+                <div id="field-captcha" class="hidden space-y-1.5">
+                    <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider">Verifikasi CAPTCHA (Keamanan)</label>
+                    <div class="flex items-center gap-2">
+                        <div class="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 flex items-center justify-between shadow-inner">
+                            <span id="captcha-question" class="text-xs font-mono font-bold text-blue-400 select-none">Berapa 7 + 5 = ?</span>
+                            <button type="button" onclick="generateCaptcha()" title="Ganti Soal Captcha" class="text-zinc-500 hover:text-white p-1 transition">
+                                <i class="fa-solid fa-rotate-right text-xs"></i>
+                            </button>
+                        </div>
+                        <input type="number" id="auth-captcha-input" placeholder="Hasil..." class="w-24 bg-zinc-950 border border-zinc-800 text-white text-sm rounded-xl px-3 py-2 focus:outline-none focus:border-blue-500 font-mono text-center">
+                    </div>
+                </div>
+
                 <div class="flex items-center justify-between pt-1">
                     <label class="flex items-center space-x-2 text-xs text-zinc-400 cursor-pointer hover:text-zinc-200">
                         <input type="checkbox" id="auth-remember-me" checked class="rounded bg-zinc-950 border-zinc-800 text-blue-600 focus:ring-0">
@@ -1451,6 +1465,20 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
             document.getElementById("profile-modal").classList.add("hidden");
         }
 
+        let captchaAnswer = 0;
+
+        function generateCaptcha() {
+            const num1 = Math.floor(Math.random() * 12) + 1;
+            const num2 = Math.floor(Math.random() * 12) + 1;
+            captchaAnswer = num1 + num2;
+            const qEl = document.getElementById("captcha-question");
+            if (qEl) {
+                qEl.innerText = 'Berapa ' + num1 + ' + ' + num2 + ' = ?';
+            }
+            const inputEl = document.getElementById("auth-captcha-input");
+            if (inputEl) inputEl.value = "";
+        }
+
         function openAuthModal(mode) {
             authMode = mode;
             const modal = document.getElementById("auth-modal");
@@ -1458,6 +1486,7 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
             const subtitle = document.getElementById("auth-modal-subtitle");
             const icon = document.getElementById("auth-modal-icon");
             const fieldFullname = document.getElementById("field-fullname");
+            const fieldCaptcha = document.getElementById("field-captcha");
             const btnText = document.getElementById("auth-btn-text");
             const switchText = document.getElementById("auth-switch-text");
             const errDiv = document.getElementById("auth-error");
@@ -1469,6 +1498,8 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
                 subtitle.innerText = "Buat akun untuk menyimpan riwayat chat";
                 icon.className = "fa-solid fa-user-plus";
                 fieldFullname.classList.remove("hidden");
+                if (fieldCaptcha) fieldCaptcha.classList.remove("hidden");
+                generateCaptcha();
                 btnText.innerText = "Daftar Akun Baru";
                 switchText.innerHTML = 'Sudah punya akun? <a href="#" onclick="toggleAuthType(event)" class="text-blue-400 hover:underline font-medium">Masuk Sekarang</a>';
             } else {
@@ -1476,6 +1507,7 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
                 subtitle.innerText = "Simpan dan lanjutkan riwayat percakapan kamu";
                 icon.className = "fa-solid fa-right-to-bracket";
                 fieldFullname.classList.add("hidden");
+                if (fieldCaptcha) fieldCaptcha.classList.add("hidden");
                 btnText.innerText = "Masuk Sekarang";
                 switchText.innerHTML = 'Belum punya akun? <a href="#" onclick="toggleAuthType(event)" class="text-blue-400 hover:underline font-medium">Daftar Akun Baru</a>';
             }
@@ -1500,6 +1532,19 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
             const errDiv = document.getElementById("auth-error");
 
             errDiv.classList.add("hidden");
+
+            if (authMode === "register") {
+                const captchaInput = document.getElementById("auth-captcha-input");
+                const userAns = parseInt(captchaInput ? captchaInput.value.trim() : "");
+                if (isNaN(userAns) || userAns !== captchaAnswer) {
+                    errDiv.classList.remove("hidden");
+                    errDiv.innerText = "Jawaban CAPTCHA salah! Silakan hitung ulang.";
+                    generateCaptcha();
+                    if (captchaInput) captchaInput.focus();
+                    return;
+                }
+            }
+
             const endpoint = authMode === "register" ? "/api/auth/register" : "/api/auth/login";
             const payload = authMode === "register" 
                 ? { username, password, full_name: fullName } 
@@ -1525,6 +1570,7 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
                 } else {
                     errDiv.classList.remove("hidden");
                     errDiv.innerText = data.error || "Terjadi kesalahan saat otentikasi.";
+                    if (authMode === "register") generateCaptcha();
                 }
             } catch (err) {
                 errDiv.classList.remove("hidden");
@@ -2176,6 +2222,7 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
         window.previewDoc = previewDoc;
         window.closePreviewModal = closePreviewModal;
         window.toggleMobileSidebar = toggleMobileSidebar;
+        window.generateCaptcha = generateCaptcha;
         window.logoutUser = logoutUser;
     </script>
 </body>

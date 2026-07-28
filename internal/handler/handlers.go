@@ -629,10 +629,14 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 
                         <div class="text-4xl font-extrabold text-blue-400 py-2 font-mono" id="final-score-val">100 / 100</div>
 
-                        <button onclick="generateQuiz()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl text-xs font-semibold transition inline-flex items-center gap-2">
-                            <i class="fa-solid fa-rotate-right"></i>
-                            <span>Coba Kuis Lagi</span>
-                        </button>
+                        <div id="score-status-badge" class="text-xs font-semibold py-2 px-4 rounded-xl bg-zinc-950 border border-zinc-800 text-zinc-300 inline-block shadow-inner"></div>
+
+                        <div class="pt-2">
+                            <button onclick="generateQuiz()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl text-xs font-semibold transition inline-flex items-center gap-2 shadow-md">
+                                <i class="fa-solid fa-rotate-right"></i>
+                                <span>Coba Kuis Lagi</span>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Loading Spinner for Quiz -->
@@ -1939,8 +1943,25 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
         }
 
         async function saveScore() {
-            if (!currentUser) return;
-            const grade = document.getElementById('quiz-grade').value;
+            const statusBadge = document.getElementById('score-status-badge');
+
+            if (!currentUser) {
+                if (statusBadge) {
+                    statusBadge.innerHTML = '🔒 <span class="cursor-pointer underline text-blue-400 font-bold" onclick="openAuthModal(\'login\')">Masuk / Daftar</span> untuk mencatatkan skor ke Papan Peringkat!';
+                }
+                return;
+            }
+
+            const catSelect = document.getElementById('quiz-category-select');
+            let grade = 'Kurikulum Koding & AI';
+            if (catSelect && catSelect.options && catSelect.options[catSelect.selectedIndex]) {
+                grade = catSelect.options[catSelect.selectedIndex].text || grade;
+            }
+
+            if (statusBadge) {
+                statusBadge.innerHTML = '<i class="fa-solid fa-spinner animate-spin text-blue-400"></i> Menyiapkan pencatatan skor...';
+            }
+
             try {
                 const res = await fetch('/api/quiz/score/save', {
                     method: 'POST',
@@ -1953,10 +1974,20 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
                 });
                 const data = await res.json();
                 if (res.ok && data.success) {
+                    if (statusBadge) {
+                        statusBadge.innerHTML = '🏆 <span class="text-emerald-400 font-bold">Skor Kamu berhasil masuk Papan Peringkat!</span>';
+                    }
                     loadLeaderboard();
+                } else {
+                    if (statusBadge) {
+                        statusBadge.innerHTML = '⚠️ <span class="text-rose-400">' + escapeHtml(data.error || 'Gagal mencatat skor') + '</span>';
+                    }
                 }
             } catch (err) {
                 console.error("Gagal menyimpan skor:", err);
+                if (statusBadge) {
+                    statusBadge.innerHTML = '⚠️ <span class="text-rose-400">Gagal terhubung ke server leaderboard</span>';
+                }
             }
         }
 

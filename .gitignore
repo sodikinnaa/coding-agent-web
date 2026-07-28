@@ -13,7 +13,7 @@ data.db
 *.sqlite3
 
 # Executables & Binaries
-coding_agent_app
+coding_agent_app*
 coding_agent_web
 bin/
 build/

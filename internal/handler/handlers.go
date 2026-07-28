@@ -484,6 +484,29 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
                     </div>
                 </div>
 
+                <!-- Locked Chat Overlay for Limit Reached (0 Credit) -->
+                <div id="chat-limit-lock" class="hidden p-5 bg-gradient-to-r from-amber-950/40 via-zinc-900 to-amber-950/40 border border-amber-500/40 backdrop-blur-md rounded-2xl text-center space-y-3 shadow-2xl">
+                    <div class="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center text-lg mx-auto shadow-md">
+                        <i class="fa-solid fa-bolt text-amber-300"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <h3 class="text-sm font-bold text-zinc-100 flex items-center justify-center gap-1.5">
+                            <span>Kuota Chat Harian Anda Telah Habis!</span>
+                        </h3>
+                        <p class="text-xs text-zinc-300 max-w-md mx-auto leading-relaxed">
+                            Batas kredit harian paket Anda telah tercapai (0 chat tersisa hari ini). Silakan beli atau upgrade paket langganan via QRIS instant untuk melanjutkan obrolan tanpa batas.
+                        </p>
+                    </div>
+                    <div class="flex justify-center gap-3 pt-1">
+                        <button onclick="openPackageModal()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition shadow-lg shadow-emerald-500/20 flex items-center gap-2 active:scale-95">
+                            <i class="fa-solid fa-qrcode"></i> Beli / Upgrade Paket QRIS
+                        </button>
+                        <button onclick="openProfileModal(); switchProfTab('history');" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold px-4 py-2.5 rounded-xl border border-zinc-700 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-receipt text-xs"></i> Cek Pembayaran
+                        </button>
+                    </div>
+                </div>
+
                 <div id="chat-input-wrapper" class="assistant-ui-thread">
                     <form id="chat-form" class="relative flex items-center bg-zinc-900 border border-zinc-800 focus-within:border-zinc-700 rounded-2xl shadow-xl transition-all p-1.5">
                         <textarea id="user-input" rows="1" placeholder="Tanyakan seputar kurikulum koding SD-SMA..." class="w-full bg-transparent text-zinc-100 placeholder-zinc-500 px-4 py-2.5 text-sm focus:outline-none resize-none max-h-32"></textarea>
@@ -961,16 +984,28 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
             const sbUserFooter = document.getElementById("sidebar-user-footer");
 
             const chatLock = document.getElementById("chat-guest-lock");
+            const chatLimitLock = document.getElementById("chat-limit-lock");
             const chatWrapper = document.getElementById("chat-input-wrapper");
 
             if (currentUser) {
-                if (chatLock) chatLock.classList.add("hidden");
-                if (chatWrapper) chatWrapper.classList.remove("hidden");
                 const name = currentUser.full_name || currentUser.username;
                 const initial = name ? name[0].toUpperCase() : 'U';
                 let creditText = '';
                 let chatCreditText = '';
                 let planBadgeStr = 'Free Plan';
+
+                const remaining = typeof currentUser.remaining_today !== 'undefined' ? currentUser.remaining_today : currentUser.daily_limit;
+                const isLimitReached = (currentUser.role !== 'admin') && (remaining <= 0);
+
+                if (isLimitReached) {
+                    if (chatLock) chatLock.classList.add("hidden");
+                    if (chatLimitLock) chatLimitLock.classList.remove("hidden");
+                    if (chatWrapper) chatWrapper.classList.add("hidden");
+                } else {
+                    if (chatLock) chatLock.classList.add("hidden");
+                    if (chatLimitLock) chatLimitLock.classList.add("hidden");
+                    if (chatWrapper) chatWrapper.classList.remove("hidden");
+                }
 
                 if (currentUser.role === 'admin') {
                     creditText = 'Unlimited Admin';
@@ -985,7 +1020,6 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
                 }
 
                 if (currentUser.role !== 'admin') {
-                    const remaining = typeof currentUser.remaining_today !== 'undefined' ? currentUser.remaining_today : currentUser.daily_limit;
                     creditText = 'Sisa Kredit: ' + remaining + '/' + currentUser.daily_limit + ' Chat';
                     chatCreditText = '⚡ Sisa Kuota Hari Ini: ' + remaining + ' / ' + currentUser.daily_limit + ' Chat';
                 }
@@ -1047,6 +1081,7 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
                 if (quizAuthBanner) quizAuthBanner.classList.remove("hidden");
                 if (quizMainContent) quizMainContent.classList.add("hidden");
                 if (chatLock) chatLock.classList.remove("hidden");
+                if (chatLimitLock) chatLimitLock.classList.add("hidden");
                 if (chatWrapper) chatWrapper.classList.add("hidden");
             }
             loadLeaderboard();
